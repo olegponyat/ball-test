@@ -18,13 +18,14 @@ body{
     align-items: center;
     background-color: rgba(120,120,120,0.2);
     box-shadow: 12px 12px 2px 1px rgba(0, 0, 255, .2);
-    transition: 0.8s ease-in-out;
+    transition: 1s ease-in-out;
     margin-bottom: 2%;
     font-family: 'Playfair-Display' ;
 }
 .card-title{
     font-size: 2.2rem;
     text-transform: uppercase;
+    box-shadow: 12px 12px 5px 1px rgba(0, 0, 255, .2);
 }
 .card-desc{
     font-size: 1.3rem;
