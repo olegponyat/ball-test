@@ -8,6 +8,7 @@ body{
 .card-img{
     width: 90%;
     transition: .3s all;
+    filter: grayscale(1)
 }
 .card{
     width: 25vw;
@@ -22,13 +23,24 @@ body{
     margin-bottom: 2%;
     font-family: 'Playfair-Display' ;
 }
+@media screen and (max-width: 1024px) {
+    .card{
+        width: 40%;
+    }
+}
+@media screen and (max-width: 480px){
+     .card{
+        width: 100%
+     }
+}
 .card-title{
     font-size: 2.2rem;
     text-transform: uppercase;
     background-color: rgba(250, 237, 237, .7);
+    padding: 3% 4% 3% 4%;
 }
 .card-desc{
-    font-size: 1.3rem;
+    font-size: 2vh;
     margin-left: 5%;
     margin-right: 5%;
     text-align: center;
@@ -44,14 +56,12 @@ body{
     margin-top: 2%;
     animation: tilt-shaking 2s infinite;
 }
-.card-title:hover{
-
-}
 .card:hover{
     transform: translateY(-1.5rem);
 }
 .card-img:hover{
     animation: tilt-shaking 2s infinite;
+    filter: invert(1);
 }
 .card-desc:hover{
     zoom:90%;
@@ -71,17 +81,16 @@ body{
     100% {transform: rotate(5deg);}
 }
 #card1:hover{
-    transform: ;
+    transform: translateX(1000px) translateY(-1000px);
 }
 #card2:hover{
-
+    zoom:200%
 }
 #card3:hover{
-
+    rotate: 2160deg;
 }
 #card4:hover{
-
+    scale: 10;
 }
-#card4:hover{
-
+#card5:hover{
 }
