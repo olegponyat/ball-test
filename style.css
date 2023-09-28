@@ -61,11 +61,10 @@ body{
 }
 .card-img:hover{
     animation: tilt-shaking 2s infinite;
-    filter: invert(1);
+    filter: invert(0);
 }
 .card-desc:hover{
     zoom:90%;
-
 }
 @keyframes tilt-shaking {
     0% { transform: rotate(5deg); }
@@ -93,4 +92,6 @@ body{
     scale: 10;
 }
 #card5:hover{
+    transform: matrix(1, -1, -.5, -.3, 0, -.1);
 }
+
