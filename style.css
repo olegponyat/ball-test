@@ -11,7 +11,7 @@ body{
     filter: grayscale(1)
 }
 .card{
-    width: 25vw;
+    width: 27%;
     height: 55vh;
     justify-content: space-between;
     display: flex;
