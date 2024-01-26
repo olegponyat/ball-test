@@ -20,7 +20,7 @@ var render = Render.create({
 });
 
 var sphere = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 20, {
-    restitution: .9,
+    restitution: 1,
     friction: 0,
     density: 0.002,
     render: {
@@ -29,23 +29,33 @@ var sphere = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 20, {
     }
 });
 var box = Bodies.rectangle(1000, 500, 100, 100, {
-    density: 0.02,
-    friction: 0
+    density: 0.005,
+    friction: 1
 })
-var ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight - 1, window.innerWidth, 1, {
+var ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight +39, window.innerWidth, 80, {
     isStatic: true,
     render: {
         fillStyle: 'green' // Rectangle color
     }
-  });
-const objects = [sphere]
+});
+
+const objects = [sphere, ground]
 function randomNumberWidth(){
-    return Math.random() * window.innerWidth
+    return (Math.random() * window.innerWidth)/2
 }
 function randomPlatform(){
-    return (Math.random() * 5).toFixed(0)
+    return (Math.random() * 10).toFixed(0)
 }
-
+for( let i=1;i <= randomPlatform(); i++){
+    console.log('chat')
+    let platform = Bodies.rectangle(randomNumberWidth(),(-i * 200) + 900, 200, 20, {
+        isStatic: true,
+        render: {
+            fillStyle: 'orange'
+        }
+    })
+    objects.push(platform)
+}
 var platform1 = Bodies.rectangle(randomNumberWidth(), 400, randomNumberWidth()/2, 20, {
     isStatic: true,
     render: {
@@ -66,8 +76,8 @@ var platform3 = Bodies.rectangle(randomNumberWidth(), 600, randomNumberWidth()/2
         fillStyle: 'orange'
     }
 });
-
-  Composite.add(engine.world, [sphere, ground, platform1, platform2, platform3]);
+console.log(objects)
+  Composite.add(engine.world, objects);
   
   Render.run(render);
   
@@ -77,8 +87,8 @@ var platform3 = Bodies.rectangle(randomNumberWidth(), 600, randomNumberWidth()/2
   
   // Apply force to move the sphere
   var forceMagnitude = 0.002;
-  var jumpImpulse = -0.07; // Adjust jump impulse as needed
-  var damping = 0.0001; // Adjust damping factor as needed
+  var jumpImpulse = -0.055; // Adjust jump impulse as needed
+  var damping = 0.00007; // Adjust damping factor as needed
   
   // Track keys pressed
   var keysPressed = { up: false, down: false, left: false, right: false, x: false};
@@ -111,7 +121,7 @@ var platform3 = Bodies.rectangle(randomNumberWidth(), 600, randomNumberWidth()/2
   function slam() {
     if (keysPressed.down){
       sphere.restitution = 1.2
-      Body.applyForce(sphere, sphere.position, { x: 0, y: .001})
+      Body.applyForce(sphere, sphere.position, { x: 0, y: .004})
     }else {
       sphere.restitution =  .8
     }
