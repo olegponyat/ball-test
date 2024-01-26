@@ -87,7 +87,7 @@ console.log(objects)
   var damping = 0.00007; // Adjust damping factor as needed
   
   // Track keys pressed
-  var keysPressed = { up: false, down: false, left: false, right: false, x: false, c: false};
+  var keysPressed = { up: false, down: false, left: false, right: false, x: false, c: false, f: false};
   
   // Flag to track if the sphere is in the air
   var isJumping = false;
@@ -159,11 +159,10 @@ console.log(objects)
         requestAnimationFrame(checkBoxCollision);
     }
     function applyGliding() {
-        const glideForce = .00095; // Adjust the glide force as needed
+        const glideForce = .00092; // Adjust the glide force as needed
         if (keysPressed.c) {
             const glideImage = 'https://static.wikia.nocookie.net/minecraft_gamepedia/images/1/1f/Elytra_%28item%29_JE1_BE1.png/revision/latest?cb=20190502042255';
             if (sphere.velocity.y > 0) {
-                sphere.render.sprite.texture = glideImage;
                 Body.applyForce(sphere, sphere.position, { x: 0, y: -glideForce });
                 setTimeout(() => {
                     sphere.render.sprite.texture = null;
@@ -177,7 +176,15 @@ console.log(objects)
     
         requestAnimationFrame(applyGliding);
     }
-    
+    function phase() {
+        if(keysPressed.f){
+            console.log('hi')
+            sphere.transparency = 0
+        }else{
+            sphere.transparency = 1
+        }
+        requestAnimationFrame(phase)    
+    }
     let colliders = objects.splice(1)
     console.log(colliders)
     // Check for collisions with the ground
@@ -193,6 +200,7 @@ console.log(objects)
       applyForces();
       jump();
       slam();
+      phase();
       checkBoxCollision();
       applyGliding();
       checkGroundCollision();
@@ -204,6 +212,7 @@ console.log(objects)
           if (e.key === 'ArrowDown') keysPressed.down = true;
           if (e.key === 'x') keysPressed.x = true;
           if (e.key === 'c') keysPressed.c = true;
+          if (e.key === 'f') keysPressed.f = true;
       });
       
       document.addEventListener("keyup", function (e) {
@@ -213,4 +222,5 @@ console.log(objects)
           if (e.key === 'ArrowDown') keysPressed.down = false;
           if (e.key === 'x') keysPressed.x = false;
           if (e.key === 'c') keysPressed.c = false;
+          if (e.key === 'f') keysPressed.f = false;
       });    
