@@ -1,116 +1,102 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const sphere = document.getElementById("sphere");
-  
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
-  
-    let posX = 0;
-    let posY = 0;
-  
-    let speedX = 0;
-    let speedY = 0;
-  
-    const maxSpeed = 5;
-  
-    const pressedKeys = {};
-  
-    let isAnimating = false;
-  
-    const obstacles = document.querySelectorAll(".obstacle");
+var Engine = Matter.Engine,
+    Render = Matter.Render,
+    Runner = Matter.Runner,
+    Bodies = Matter.Bodies,
+    Composite = Matter.Composite,
+    Body = Matter.Body;
 
-    function updatePosition() {
-      sphere.style.transform = `translate(${posX}px, ${posY}px)`;
-    }
-  
-    function checkCollision() {
-        posX = Math.max(0, Math.min(posX, screenWidth - sphere.clientWidth));
-        posY = Math.max(0, Math.min(posY, screenHeight - sphere.clientHeight));
-      
-        for (const obstacle of obstacles) {
-          const obstacleLeft = obstacle.offsetLeft;
-          const obstacleRight = obstacleLeft + obstacle.offsetWidth;
-          const obstacleTop = obstacle.offsetTop;
-          const obstacleBottom = obstacleTop + obstacle.offsetHeight;
-      
-          if (
-            posX < obstacleRight &&
-            posX + sphere.clientWidth > obstacleLeft &&
-            posY < obstacleBottom &&
-            posY + sphere.clientHeight > obstacleTop
-          ) {
-            const overlapLeft = posX + sphere.clientWidth - obstacleLeft;
-            const overlapRight = obstacleRight - posX;
-            const overlapTop = posY + sphere.clientHeight - obstacleTop;
-            const overlapBottom = obstacleBottom - posY;
-      
-            const minOverlapX = Math.min(overlapLeft, overlapRight);
-            const minOverlapY = Math.min(overlapTop, overlapBottom);
-      
-            if (minOverlapX < minOverlapY) {
-              if (overlapLeft < overlapRight) {
-                posX -= overlapLeft;
-              } else {
-                posX += overlapRight;
-              }
-            } else {
-              if (overlapTop < overlapBottom) {
-                posY -= overlapTop;
-              } else {
-                posY += overlapBottom;
-              }
-            }
-          }
-        }
-      }
-      
-    function setSpeed() {
-      speedX = 0;
-      speedY = 0;
-  
-      if (pressedKeys.ArrowRight) speedX += maxSpeed;
-      if (pressedKeys.ArrowLeft) speedX -= maxSpeed;
-      if (pressedKeys.ArrowDown) speedY += maxSpeed;
-      if (pressedKeys.ArrowUp) speedY -= maxSpeed;
-  
-      const magnitude = Math.sqrt(speedX ** 2 + speedY ** 2);
-      if (magnitude > maxSpeed) {
-        const scaleFactor = maxSpeed / magnitude;
-        speedX *= scaleFactor;
-        speedY *= scaleFactor;
-      }
-      console.log(`Velocity: X=${speedX}, Y=${speedY}`);
-    }
-  
-    function moveSphere() {
-      if (isAnimating) return;
-      isAnimating = true;
-  
-      posX += speedX;
-      posY += speedY;
-  
-      checkCollision();
-      updatePosition();
-      requestAnimationFrame(() => {
-        isAnimating = false;
-        moveSphere();
-      });
-    }
-  
-    document.addEventListener("keydown", function (e) {
-      if (!pressedKeys[e.key]) {
-        pressedKeys[e.key] = true;
-  
-        setSpeed();
-        moveSphere();
-      }
-    });
+// create an engine
+var engine = Engine.create();
 
-    document.addEventListener("keyup", function (e) {
-      pressedKeys[e.key] = false;
-  
-      setSpeed();
-    });
+// create a renderer
+var render = Render.create({
+    element: document.body,
+    engine: engine,
+    options: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        wireframes: false // Set to true for wireframe view
+    }
+});
 
-    
-  });
-  
+var sphere = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 20, {
+    restitution: 0, // Bounciness of the sphere
+    render: {
+        fillStyle: 'blue',
+    }
+});
+var ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight - 1, window.innerWidth, 1, {
+    isStatic: true,
+    render: {
+        fillStyle: 'green' // Rectangle color
+    }
+});
+Composite.add(engine.world, [sphere, ground]);
+
+Render.run(render);
+
+var runner = Runner.create();
+
+Runner.run(runner, engine);
+
+// Apply force to move the sphere
+var forceMagnitude = 0.01;
+var jumpImpulse = -0.09; // Adjust jump impulse as needed
+var damping = 0.005; // Adjust damping factor as needed
+
+// Track keys pressed
+var keysPressed = { up: false, down: false, left: false, right: false };
+
+// Flag to track if the sphere is in the air
+var isJumping = false;
+
+// Flag to check if the sphere can jump
+var canJump = true;
+
+// Continuous force application
+function applyForces() {
+    // Apply horizontal movement force
+    Body.applyForce(sphere, sphere.position, { x: forceMagnitude * (keysPressed.right - keysPressed.left), y: 0 });
+
+    // Apply damping forces for more realistic movement
+    Body.applyForce(sphere, sphere.position, { x: -sphere.velocity.x * damping, y: 0 });
+
+    requestAnimationFrame(applyForces);
+}
+
+// Continuous jump animation
+function jump() {
+    if (keysPressed.up && canJump) {
+        Body.applyForce(sphere, sphere.position, { x: 0, y: jumpImpulse });
+        canJump = false;
+    }
+
+    requestAnimationFrame(jump);
+}
+
+// Check for collisions with the ground
+function checkGroundCollision() {
+    const collisions = Matter.Query.collides(sphere, [ground]);
+    if (collisions.length > 0 && !keysPressed.up) {
+        canJump = true;
+    }
+
+    requestAnimationFrame(checkGroundCollision);
+}
+
+// Start applying forces, jump animation, and ground collision check
+applyForces();
+jump();
+checkGroundCollision();
+
+document.addEventListener("keydown", function (e) {
+    if (e.key === 'ArrowLeft') keysPressed.left = true;
+    if (e.key === 'ArrowRight') keysPressed.right = true;
+    if (e.key === 'ArrowUp') keysPressed.up = true;
+});
+
+document.addEventListener("keyup", function (e) {
+    if (e.key === 'ArrowLeft') keysPressed.left = false;
+    if (e.key === 'ArrowRight') keysPressed.right = false;
+    if (e.key === 'ArrowUp') keysPressed.up = false;
+});
