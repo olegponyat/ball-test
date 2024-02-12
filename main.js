@@ -204,8 +204,9 @@ console.log(objects)
                   if (pair.bodyA === sphere || pair.bodyB === sphere) {
                     // check if the collision is from the bottom
                     if (isBottomCollision(pair.collision)) {
-                      // do something with the bottom collision
-                      Matter.Body.translate(sphere, {x: 0, y: -0.1})
+                    
+                      Body.translate(sphere, {x: 0, y: -.5})
+                      Body.setVelocity(sphere, {x: sphere.velocity.x, y: sphere.velocity.y})
                       
                     }
                   }
