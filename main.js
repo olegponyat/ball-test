@@ -7,7 +7,7 @@ var Engine = Matter.Engine,
 
 // create an engine
 var engine = Engine.create({
-    gravity: { x: 0, y: 0.1  } // Set gravity in the y-direction
+    gravity: { x: 0, y: .4  } // Set gravity in the y-direction
 });
 
 // create a renderer
@@ -20,37 +20,35 @@ var render = Render.create({
         wireframes: false // Set to true for wireframe view
     }
 });
-
+console.log(window.innerWidth)
 var sphere = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 20, {
     restitution: 1,
     friction: 0,
     density: 0.002,
     render: {
         fillStyle: 'blue',
-        image: 'https://images.pexels.com/photos/268533/pexels-photo-268533.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500'
     }
 });
 var box = Bodies.rectangle(1000, 500, 100, 100, {
-    density: 0.005,
-    friction: 1
+
 })
-var ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight +39, window.innerWidth, 80, {
+var ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 39, window.innerWidth, 80, {
     isStatic: true,
     render: {
         fillStyle: 'green' // Rectangle color
     }
 });
 
-const objects = [sphere, ground]
+const objects = [sphere, ground, box]
 function randomNumberWidth(){
-    return (Math.random() * window.innerWidth)/2
+    return (Math.random() * window.innerWidth)
 }
 function randomPlatform(){
-    return (Math.random() * 10).toFixed(0)
+    return (Math.random() * 20).toFixed(0)
 }
 for( let i=1;i <= randomPlatform(); i++){
     console.log('chat')
-    let platform = Bodies.rectangle(randomNumberWidth(),(-i * 200) + 900, 200, 20, {
+    let platform = Bodies.rectangle(randomNumberWidth(),(-i * 100) + 900, 300, 20, {
         isStatic: true,
         render: {
             fillStyle: 'orange'
@@ -58,26 +56,7 @@ for( let i=1;i <= randomPlatform(); i++){
     })
     objects.push(platform)
 }
-var platform1 = Bodies.rectangle(randomNumberWidth(), 400, randomNumberWidth()/2, 20, {
-    isStatic: true,
-    render: {
-        fillStyle: 'orange'
-    }
-});
 
-var platform2 = Bodies.rectangle(randomNumberWidth(), 200, randomNumberWidth()/2 , 20, {
-    isStatic: true,
-    render: {
-        fillStyle: 'orange'
-    }
-});
-
-var platform3 = Bodies.rectangle(randomNumberWidth(), 600, randomNumberWidth()/2, 20, {
-    isStatic: true,
-    render: {
-        fillStyle: 'orange'
-    }
-});
 console.log(objects)
   Composite.add(engine.world, objects);
   
@@ -88,8 +67,8 @@ console.log(objects)
   Runner.run(runner, engine);
   
   // Apply force to move the sphere
-  var forceMagnitude = 0.002;
-  var jumpImpulse = -0.055; // Adjust jump impulse as needed
+  var forceMagnitude = 0.001;
+  var jumpImpulse = -0.065   ; // Adjust jump impulse as needed
   var damping = 0.00007; // Adjust damping factor as needed
   
   // Track keys pressed
@@ -113,7 +92,7 @@ console.log(objects)
   }
 
   // Continuous jump animation
-  function jump() {
+    function jump() {
       if (keysPressed.up && canJump) {
           Body.applyForce(sphere, sphere.position, { x: 0, y: jumpImpulse });
           canJump = false;
@@ -122,36 +101,55 @@ console.log(objects)
     }
     function slam() {
         if (keysPressed.down) {
-            jumpImpulse = -0.05; // Adjust the bounce impulse when holding down the down arrow key
+            jumpImpulse = -1; // Adjust the bounce impulse when holding down the down arrow key
             sphere.restitution = 1;
             Body.applyForce(sphere, sphere.position, { x: 0, y: 0.001 });
         } else {
-
+            var jumpImpulse = -0.065 
             sphere.restitution = 0.8;
         }
         requestAnimationFrame(slam);
     }
-    function density() {
-        if(keysPressed.x === true){
-            sphere.restitution = .1
-            sphere.density = 1
+    function checkBoxCollision() {
+        const collisions = Matter.Query.collides(sphere, [box]);
+        if (collisions.length > 0 && keysPressed.x) {
             sphere.render.strokeStyle = 'white';
-            sphere.render.lineWidth = 5; // Adjust the width of the outline as needed
-            var hitForceMagnitude = 0.01;
-            Body.applyForce(sphere, sphere.position, { x: hitForceMagnitude * (keysPressed.right - keysPressed.left), y: 0 });
-        }else if (keysPressed.x === false){  
-            sphere.restitution = .8
-            sphere.density = 0.002
+            sphere.restitution = 0.1;
+    
+            const collision = collisions[0];
+            const collisionNormal = collision.normal;
+    
+            const forceMagnitude = Math.sqrt(collisionNormal.x ** 2 + collisionNormal.y ** 2);
+            console.log('Force Magnitude:', forceMagnitude);
+    
+            const additionalForce = 0.01;
+            const scaleFactorSphere = .1; // Adjust this value as needed
+            const scaleFactorBox = .8
+    
+            // Apply a greater force to the sphere
+            Body.applyForce(sphere, sphere.position, {
+                x: collisionNormal.x * (forceMagnitude + additionalForce) * scaleFactorSphere,
+                y: collisionNormal.y * (forceMagnitude + additionalForce) * scaleFactorSphere,
+            });
+            // Apply a greater force to the box
+            Body.applyForce(box, box.position, {
+                x: -collisionNormal.x * (forceMagnitude + additionalForce) * scaleFactorBox,
+                y: -collisionNormal.y * (forceMagnitude + additionalForce) * scaleFactorBox,
+            });
+        } else if (!keysPressed.x) {
+            sphere.restitution = 0.8;
             sphere.render.strokeStyle = null;
             sphere.render.lineWidth = 0; // Set the width to 0 to remove the outline
-
         }
-        requestAnimationFrame(density)
+        requestAnimationFrame(checkBoxCollision);
     }
-
+    
+    
+    let colliders = objects.splice(1)
+    console.log(colliders)
     // Check for collisions with the ground
     function checkGroundCollision() {
-        const collisions = Matter.Query.collides(sphere, [ground, platform1, platform2, platform3]);
+        const collisions = Matter.Query.collides(sphere, colliders);
         if (collisions.length > 0 && !keysPressed.up) {
             canJump = true;
         }
@@ -159,11 +157,10 @@ console.log(objects)
         requestAnimationFrame(checkGroundCollision);
       }
       
-      // Start applying forces, jump animation, and ground collision check
       applyForces();
       jump();
       slam();
-      density();
+      checkBoxCollision();
       checkGroundCollision();
       
       document.addEventListener("keydown", function (e) {
