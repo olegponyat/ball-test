@@ -5,7 +5,6 @@ var Engine = Matter.Engine,
     Composite = Matter.Composite,
     Body = Matter.Body;
 
-// create an engine
 var engine = Engine.create({
     gravity: { x: 0, y: .4  } // Set gravity in the y-direction
 });
@@ -29,8 +28,24 @@ var sphere = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 20, {
         fillStyle: 'blue',
     }
 });
-var box = Bodies.rectangle(1000, 500, 100, 100, {
-
+var box = Bodies.rectangle(window.innerWidth/2, 500, 100, 100)
+var leftborder = Bodies.rectangle(0,window.innerHeight-480,1,window.innerHeight,{
+    isStatic: true,
+    render: {
+        fillStyle: 'green' // Rectangle color
+    }
+})
+var rightborder = Bodies.rectangle(window.innerWidth,(window.innerHeight-480),1,window.innerHeight,{
+    isStatic: true,
+    render: {
+        fillStyle: 'green' // Rectangle color
+    }
+})
+var ceiling = Bodies.rectangle(960,1,window.innerWidth,1,{
+    isStatic: true,
+    render: {
+        fillStyle: 'pink' // Rectangle color
+    }
 })
 var ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 39, window.innerWidth, 80, {
     isStatic: true,
@@ -39,7 +54,7 @@ var ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 39, wi
     }
 });
 
-const objects = [sphere, ground, box]
+const objects = [sphere, ground, box, leftborder, rightborder, ceiling]
 function randomNumberWidth(){
     return (Math.random() * window.innerWidth)
 }
@@ -68,11 +83,11 @@ console.log(objects)
   
   // Apply force to move the sphere
   var forceMagnitude = 0.001;
-  var jumpImpulse = -0.065   ; // Adjust jump impulse as needed
+  let jumpImpulse = -0.065   ; // Adjust jump impulse as needed
   var damping = 0.00007; // Adjust damping factor as needed
   
   // Track keys pressed
-  var keysPressed = { up: false, down: false, left: false, right: false, x: false};
+  var keysPressed = { up: false, down: false, left: false, right: false, x: false, c: false};
   
   // Flag to track if the sphere is in the air
   var isJumping = false;
@@ -101,11 +116,11 @@ console.log(objects)
     }
     function slam() {
         if (keysPressed.down) {
-            jumpImpulse = -1; // Adjust the bounce impulse when holding down the down arrow key
+            jumpImpulse = -0.09; // Adjust the bounce impulse when holding down the down arrow key
             sphere.restitution = 1;
-            Body.applyForce(sphere, sphere.position, { x: 0, y: 0.001 });
+            Body.applyForce(sphere, sphere.position, { x: 0, y: 0.003 });
         } else {
-            var jumpImpulse = -0.065 
+            jumpImpulse = -0.065 
             sphere.restitution = 0.8;
         }
         requestAnimationFrame(slam);
@@ -124,7 +139,7 @@ console.log(objects)
     
             const additionalForce = 0.01;
             const scaleFactorSphere = .1; // Adjust this value as needed
-            const scaleFactorBox = .8
+            const scaleFactorBox = 2
     
             // Apply a greater force to the sphere
             Body.applyForce(sphere, sphere.position, {
@@ -143,7 +158,25 @@ console.log(objects)
         }
         requestAnimationFrame(checkBoxCollision);
     }
+    function applyGliding() {
+        const glideForce = .00095; // Adjust the glide force as needed
+        if (keysPressed.c) {
+            const glideImage = 'https://static.wikia.nocookie.net/minecraft_gamepedia/images/1/1f/Elytra_%28item%29_JE1_BE1.png/revision/latest?cb=20190502042255';
+            if (sphere.velocity.y > 0) {
+                sphere.render.sprite.texture = glideImage;
+                Body.applyForce(sphere, sphere.position, { x: 0, y: -glideForce });
+                setTimeout(() => {
+                    sphere.render.sprite.texture = null;
+                    keysPressed.c = false; // Release the gliding key                   
+                }, 3000);
+            }else{
+                sphere.render.sprite.texture = null;
+                Body.setVelocity(sphere, { x: sphere.velocity.x, y: 0 });
+            }
+        }
     
+        requestAnimationFrame(applyGliding);
+    }
     
     let colliders = objects.splice(1)
     console.log(colliders)
@@ -161,6 +194,7 @@ console.log(objects)
       jump();
       slam();
       checkBoxCollision();
+      applyGliding();
       checkGroundCollision();
       
       document.addEventListener("keydown", function (e) {
@@ -168,7 +202,8 @@ console.log(objects)
           if (e.key === 'ArrowRight') keysPressed.right = true;
           if (e.key === 'ArrowUp') keysPressed.up = true;
           if (e.key === 'ArrowDown') keysPressed.down = true;
-          if (e.key === 'x') keysPressed.x = true
+          if (e.key === 'x') keysPressed.x = true;
+          if (e.key === 'c') keysPressed.c = true;
       });
       
       document.addEventListener("keyup", function (e) {
@@ -177,4 +212,5 @@ console.log(objects)
           if (e.key === 'ArrowUp') keysPressed.up = false;
           if (e.key === 'ArrowDown') keysPressed.down = false;
           if (e.key === 'x') keysPressed.x = false;
+          if (e.key === 'c') keysPressed.c = false;
       });    
