@@ -6,7 +6,9 @@ var Engine = Matter.Engine,
     Body = Matter.Body;
 
 // create an engine
-var engine = Engine.create();
+var engine = Engine.create({
+    gravity: { x: 0, y: 0.1  } // Set gravity in the y-direction
+});
 
 // create a renderer
 var render = Render.create({
@@ -67,7 +69,13 @@ var platform3 = Bodies.rectangle(randomNumberWidth(), 600, randomNumberWidth()/2
     }
 });
 
-  Composite.add(engine.world, [sphere, ground, platform1, platform2, platform3]);
+var cube = Bodies.rectangle(900, 900, 200, 200, {
+    render: {
+        fillStyle: 'blue'
+    }
+})
+
+  Composite.add(engine.world, [sphere, ground, platform1, platform2, platform3, cube]);
   
   Render.run(render);
   
@@ -76,8 +84,8 @@ var platform3 = Bodies.rectangle(randomNumberWidth(), 600, randomNumberWidth()/2
   Runner.run(runner, engine);
   
   // Apply force to move the sphere
-  var forceMagnitude = 0.002;
-  var jumpImpulse = -0.07; // Adjust jump impulse as needed
+  var forceMagnitude = 0.001;
+  var jumpImpulse = -0.02; // Adjust jump impulse as needed
   var damping = 0.0001; // Adjust damping factor as needed
   
   // Track keys pressed
@@ -87,7 +95,7 @@ var platform3 = Bodies.rectangle(randomNumberWidth(), 600, randomNumberWidth()/2
   var isJumping = false;
   
   // Flag to check if the sphere can jump
-  var canJump = false;
+  let canJump = false;
   
   // Continuous force application
   function applyForces() {
@@ -108,32 +116,34 @@ var platform3 = Bodies.rectangle(randomNumberWidth(), 600, randomNumberWidth()/2
       }
       requestAnimationFrame(jump);
     }
-  function slam() {
-    if (keysPressed.down){
-      sphere.restitution = 1.2
-      Body.applyForce(sphere, sphere.position, { x: 0, y: .001})
-    }else {
-      sphere.restitution =  .8
+    function slam() {
+        if (keysPressed.down) {
+            jumpImpulse = -0.05; // Adjust the bounce impulse when holding down the down arrow key
+            sphere.restitution = 1;
+            Body.applyForce(sphere, sphere.position, { x: 0, y: 0.001 });
+        } else {
+            jumpImpulse = -0.02; // Reset the bounce impulse when the down arrow key is released
+            sphere.restitution = 0.8;
+        }
+        requestAnimationFrame(slam);
     }
-    requestAnimationFrame(slam)
-  }
-  function density() {
-    if(keysPressed.x === true){
-        sphere.restitution = .4
-        sphere.density = 1
-        sphere.render.strokeStyle = 'white';
-        sphere.render.lineWidth = 5; // Adjust the width of the outline as needed
-        var hitForceMagnitude = 0.01;
-        Body.applyForce(sphere, sphere.position, { x: hitForceMagnitude * (keysPressed.right - keysPressed.left), y: 0 });
-    }else if (keysPressed.x === false){  
-        sphere.restitution = .8
-        sphere.density = 0.002
-        sphere.render.strokeStyle = null;
-        sphere.render.lineWidth = 0; // Set the width to 0 to remove the outline
+    function density() {
+        if(keysPressed.x === true){
+            sphere.restitution = .1
+            sphere.density = 1
+            sphere.render.strokeStyle = 'white';
+            sphere.render.lineWidth = 5; // Adjust the width of the outline as needed
+            var hitForceMagnitude = 0.01;
+            Body.applyForce(sphere, sphere.position, { x: hitForceMagnitude * (keysPressed.right - keysPressed.left), y: 0 });
+        }else if (keysPressed.x === false){  
+            sphere.restitution = .8
+            sphere.density = 0.002
+            sphere.render.strokeStyle = null;
+            sphere.render.lineWidth = 0; // Set the width to 0 to remove the outline
 
+        }
+        requestAnimationFrame(density)
     }
-    requestAnimationFrame(density)
-}
 
     // Check for collisions with the ground
     function checkGroundCollision() {
