@@ -102,7 +102,7 @@ console.log(objects)
   
       // Apply damping forces for more realistic movement
       Body.applyForce(sphere, sphere.position, { x: -sphere.velocity.x * damping, y: 0.00001 });
-  
+   
       requestAnimationFrame(applyForces);
   }
 
@@ -159,27 +159,27 @@ console.log(objects)
         requestAnimationFrame(checkBoxCollision);
     }
     function applyGliding() {
-        const glideForce = .0023; // Adjust the glide force as needed
+        const glideForce = .0024; // Adjust the glide force as needed
+        let glideTime = 3000
         if (keysPressed.c) {
-            
+            glideTime = 3000
             const glideImage = 'https://static.wikia.nocookie.net/minecraft_gamepedia/images/1/1f/Elytra_%28item%29_JE1_BE1.png/revision/latest?cb=20190502042255';
             sphere.render.sprite.texture = glideImage;
-            setTimeout(() => {
-                sphere.render.sprite.texture = null;
-                keysPressed.c = false; // Release the gliding key                   
-            }, 3000);            
             if (sphere.velocity.y > 0) {
                 Body.applyForce(sphere, sphere.position, { x: 0, y: -glideForce });
                 setTimeout(() => {
                     sphere.render.sprite.texture = null;
-                    keysPressed.c = false; // Release the gliding key                   
-                }, 3000);
+                    keysPressed.c = false; // Release the gliding key                
+                }, glideTime);
+                glideTime = 3000
             }else{
                 sphere.render.sprite.texture = null;
                 Body.setVelocity(sphere, { x: sphere.velocity.x, y: 0 });
+                glideTime = 3000    
             }
         }else{
             sphere.render.sprite.texture = null;
+            glideTime = 3000 
         }
     
         requestAnimationFrame(applyGliding);
@@ -187,14 +187,13 @@ console.log(objects)
     function phase() {
         if (keysPressed.f) {
             function isBottomCollision(collision) {
-                // get the normal vector of the collision
                 var normal = collision.normal;
-                // get the angle between the normal and the vertical axis
                 var angle = Math.acos(normal.y);
-                // if the angle is close to zero, it means the collision is from the bottom
-                var threshold = 0.1; // adjust this value as needed
+                var threshold = 2; // adjust this value as needed
                 return angle < threshold;
             }
+            const collisionBottom = Matter.Query.collides(sphere, colliders)
+
             Matter.Events.on(engine, 'collisionStart', function(event) {
                 let pairs = event.pairs;
                 // loop through all the pairs of colliding bodies
@@ -203,18 +202,21 @@ console.log(objects)
 
                   if (pair.bodyA === sphere || pair.bodyB === sphere) {
                     // check if the collision is from the bottom
-                    if (isBottomCollision(pair.collision)) {
-                    
-                      Body.translate(sphere, {x: 0, y: -.5})
-                      Body.setVelocity(sphere, {x: sphere.velocity.x, y: sphere.velocity.y})
-                      
+                    if (isBottomCollision(pair.collision)) {       
+                        let oldVelo = [sphere.velocity.x, sphere.velocity.y]
+                        Body.setVelocity(sphere, {x: sphere.velocity.x, y: 0})
+                        Body.setPosition(sphere, {x: sphere.position.x, y: sphere.position.y -1 })
+                        Body.setVelocity(sphere, {x: oldVelo[0], y: oldVelo[1]})
+                        console.log('collision deteced')
+                        keysPressed.f = false
                     }
                   }
                 }
               });
 
-            sphere.render.opacity = 0.3
+            sphere.render.opacity = 0.3 
         }else{
+            Matter.Events.off(engine)
             sphere.render.opacity = 1
         }
 
@@ -238,7 +240,7 @@ console.log(objects)
       phase();
       checkBoxCollision();
       applyGliding();
-      phase();
+
       checkGroundCollision();
       
       document.addEventListener("keydown", function (e) {
