@@ -6,7 +6,7 @@ var Engine = Matter.Engine,
     Body = Matter.Body;
 
 var engine = Engine.create({
-    gravity: { x: 0, y: 1  } // Set gravity in the y-direction
+    gravity: { x: 0, y: .2  } // Set gravity in the y-direction
 });
 
 // create a renderer
@@ -21,14 +21,20 @@ var render = Render.create({
 });
 console.log(window.innerWidth)
 var sphere = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 20, {
-    restitution: 1,
+    restitution: .4,
     friction: 0,
     density: 0.002,
+    frictionAir: .008, // Adjust air friction for sliding
     render: {
         fillStyle: 'blue',
     }
 });
-var box = Bodies.rectangle(window.innerWidth/2, 500, 100, 100)
+var box = Bodies.rectangle(window.innerWidth/2, 500, 200, 200, {
+    density: .1,
+    render: {
+        fillStyle: 'pink'
+    }
+})
 var leftborder = Bodies.rectangle(0,window.innerHeight-480,1,window.innerHeight,{
     isStatic: true,
     render: {
@@ -54,7 +60,7 @@ var ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 39, wi
     }
 });
 
-const objects = [sphere, ground, box, leftborder, rightborder, ceiling]
+const objects = [sphere, box, ground, leftborder, rightborder, ceiling]
 function randomNumberWidth(){
     return (Math.random() * window.innerWidth)
 }
@@ -83,7 +89,7 @@ console.log(objects)
   
   // Apply force to move the sphere
   var forceMagnitude = 0.001;
-  let jumpImpulse = -0.065   ; // Adjust jump impulse as needed
+  let jumpImpulse = -0.045   ; // Adjust jump impulse as needed
   var damping = 0.00007; // Adjust damping factor as needed
   
   // Track keys pressed
@@ -105,7 +111,6 @@ console.log(objects)
   
       requestAnimationFrame(applyForces);
   }
-
   // Continuous jump animation
     function jump() {
       if (keysPressed.up && canJump) {
@@ -116,11 +121,11 @@ console.log(objects)
     }
     function slam() {
         if (keysPressed.down) {
-            jumpImpulse = -0.09; // Adjust the bounce impulse when holding down the down arrow key
+            jumpImpulse = -0.06; // Adjust the bounce impulse when holding down the down arrow key
             sphere.restitution = 1;
-            Body.applyForce(sphere, sphere.position, { x: 0, y: 0.003 });
+            Body.applyForce(sphere, sphere.position, { x: 0, y: 0.001 });
         } else {
-            jumpImpulse = -0.065 
+            jumpImpulse = -0.045 
             sphere.restitution = 0.8;
         }
         requestAnimationFrame(slam);
@@ -184,45 +189,31 @@ console.log(objects)
     
         requestAnimationFrame(applyGliding);
     }
-    function phase() {
-        if (keysPressed.f) {
-            function isBottomCollision(collision) {
-                // get the normal vector of the collision
-                var normal = collision.normal;
-                // get the angle between the normal and the vertical axis
-                var angle = Math.acos(normal.y);
-                // if the angle is close to zero, it means the collision is from the bottom
-                var threshold = 0.1; // adjust this value as needed
-                return angle < threshold;
-            }
-            Matter.Events.on(engine, 'collisionStart', function(event) {
-                let pairs = event.pairs;
-                // loop through all the pairs of colliding bodies
-                for (var i = 0; i < pairs.length; i++) {
-                  var pair = pairs[i];
+    const platforms = objects.slice(6, objects.length);
+const defaultCollisionMask = sphere.collisionFilter.mask;
 
-                  if (pair.bodyA === sphere || pair.bodyB === sphere) {
-                    // check if the collision is from the bottom
-                    if (isBottomCollision(pair.collision)) {
-                    
-                      Body.translate(sphere, {x: 0, y: -.5})
-                      Body.setVelocity(sphere, {x: sphere.velocity.x, y: sphere.velocity.y})
-                      
-                    }
-                  }
-                }
-              });
+function phase() {
+    if (keysPressed.f) {
+        // Disable collisions for the sphere with all objects in colliders array
+        platforms.forEach(object => {
+            console.log('Disabling collisions for:', object);
+            object.collisionFilter.mask = 0;  // Set the mask to 0 to disable collisions
+        });
+        sphere.render.opacity = 0.5;  // Adjust opacity when phasing
+    } else {
+        // Enable collisions for the sphere with all objects in colliders array
+        platforms.forEach(object => {
 
-            sphere.render.opacity = 0.3
-        }else{
-            sphere.render.opacity = 1
-        }
-
-        requestAnimationFrame(phase)
+            object.collisionFilter.mask = defaultCollisionMask;  // Reset the mask to default
+        });
+        sphere.render.opacity = 1;  // Reset opacity
     }
-    let colliders = objects.splice(1)
-    console.log(colliders)
 
+    requestAnimationFrame(phase);
+}
+    
+    const colliders = objects.slice(2,objects.length)
+    console.log(colliders)
     function checkGroundCollision() {
         const collisions = Matter.Query.collides(sphere, colliders);
         if (collisions.length > 0 && !keysPressed.up) {
@@ -235,7 +226,6 @@ console.log(objects)
       applyForces();
       jump();
       slam();
-      phase();
       checkBoxCollision();
       applyGliding();
       phase();
