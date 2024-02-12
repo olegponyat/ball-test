@@ -6,7 +6,7 @@ var Engine = Matter.Engine,
     Body = Matter.Body;
 
 var engine = Engine.create({
-    gravity: { x: 0, y: .4  } // Set gravity in the y-direction
+    gravity: { x: 0, y: 1  } // Set gravity in the y-direction
 });
 
 // create a renderer
@@ -87,7 +87,7 @@ console.log(objects)
   var damping = 0.00007; // Adjust damping factor as needed
   
   // Track keys pressed
-  var keysPressed = { up: false, down: false, left: false, right: false, x: false, c: false};
+  var keysPressed = { up: false, down: false, left: false, right: false, x: false, c: false, f: false};
   
   // Flag to track if the sphere is in the air
   var isJumping = false;
@@ -159,11 +159,16 @@ console.log(objects)
         requestAnimationFrame(checkBoxCollision);
     }
     function applyGliding() {
-        const glideForce = .00095; // Adjust the glide force as needed
+        const glideForce = .0023; // Adjust the glide force as needed
         if (keysPressed.c) {
+            
             const glideImage = 'https://static.wikia.nocookie.net/minecraft_gamepedia/images/1/1f/Elytra_%28item%29_JE1_BE1.png/revision/latest?cb=20190502042255';
+            sphere.render.sprite.texture = glideImage;
+            setTimeout(() => {
+                sphere.render.sprite.texture = null;
+                keysPressed.c = false; // Release the gliding key                   
+            }, 3000);            
             if (sphere.velocity.y > 0) {
-                sphere.render.sprite.texture = glideImage;
                 Body.applyForce(sphere, sphere.position, { x: 0, y: -glideForce });
                 setTimeout(() => {
                     sphere.render.sprite.texture = null;
@@ -173,14 +178,50 @@ console.log(objects)
                 sphere.render.sprite.texture = null;
                 Body.setVelocity(sphere, { x: sphere.velocity.x, y: 0 });
             }
+        }else{
+            sphere.render.sprite.texture = null;
         }
     
         requestAnimationFrame(applyGliding);
     }
-    
+    function phase() {
+        if (keysPressed.f) {
+            function isBottomCollision(collision) {
+                // get the normal vector of the collision
+                var normal = collision.normal;
+                // get the angle between the normal and the vertical axis
+                var angle = Math.acos(normal.y);
+                // if the angle is close to zero, it means the collision is from the bottom
+                var threshold = 0.1; // adjust this value as needed
+                return angle < threshold;
+            }
+            Matter.Events.on(engine, 'collisionStart', function(event) {
+                let pairs = event.pairs;
+                // loop through all the pairs of colliding bodies
+                for (var i = 0; i < pairs.length; i++) {
+                  var pair = pairs[i];
+
+                  if (pair.bodyA === sphere || pair.bodyB === sphere) {
+                    // check if the collision is from the bottom
+                    if (isBottomCollision(pair.collision)) {
+                      // do something with the bottom collision
+                      Matter.Body.translate(sphere, {x: 0, y: -0.1})
+                      
+                    }
+                  }
+                }
+              });
+
+            sphere.render.opacity = 0.3
+        }else{
+            sphere.render.opacity = 1
+        }
+
+        requestAnimationFrame(phase)
+    }
     let colliders = objects.splice(1)
     console.log(colliders)
-    // Check for collisions with the ground
+
     function checkGroundCollision() {
         const collisions = Matter.Query.collides(sphere, colliders);
         if (collisions.length > 0 && !keysPressed.up) {
@@ -195,6 +236,7 @@ console.log(objects)
       slam();
       checkBoxCollision();
       applyGliding();
+      phase();
       checkGroundCollision();
       
       document.addEventListener("keydown", function (e) {
@@ -204,6 +246,7 @@ console.log(objects)
           if (e.key === 'ArrowDown') keysPressed.down = true;
           if (e.key === 'x') keysPressed.x = true;
           if (e.key === 'c') keysPressed.c = true;
+          if (e.key === 'f') keysPressed.f = true;
       });
       
       document.addEventListener("keyup", function (e) {
@@ -213,4 +256,5 @@ console.log(objects)
           if (e.key === 'ArrowDown') keysPressed.down = false;
           if (e.key === 'x') keysPressed.x = false;
           if (e.key === 'c') keysPressed.c = false;
+          if (e.key === 'f') keysPressed.f = false;
       });    
