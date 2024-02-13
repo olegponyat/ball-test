@@ -16,7 +16,8 @@ var render = Render.create({
     options: {
         width: window.innerWidth,
         height: window.innerHeight,
-        wireframes: false // Set to true for wireframe view
+        wireframes: false, // Set to true for wireframe view
+        pixelRatio: 'auto' // Adjust pixelRatio to fix white corners
     }
 });
 console.log(window.innerWidth)
@@ -123,18 +124,22 @@ console.log(objects)
         if (keysPressed.down) {
             jumpImpulse = -0.06; // Adjust the bounce impulse when holding down the down arrow key
             sphere.restitution = 1;
-            Body.applyForce(sphere, sphere.position, { x: 0, y: 0.001 });
+            Body.applyForce(sphere, sphere.position, { x: 0, y: 0.0008 });
         } else {
             jumpImpulse = -0.045 
-            sphere.restitution = 0.8;
+            sphere.restitution = 0.4;
         }
         requestAnimationFrame(slam);
     }
     function checkBoxCollision() {
         const collisions = Matter.Query.collides(sphere, [box]);
+        if(keysPressed.x){
+            sphere.render.strokeStyle = 'white';
+            sphere.restitution = 0;
+        }
         if (collisions.length > 0 && keysPressed.x) {
             sphere.render.strokeStyle = 'white';
-            sphere.restitution = 0.1;
+            sphere.restitution = 0;
     
             const collision = collisions[0];
             const collisionNormal = collision.normal;
@@ -190,34 +195,72 @@ console.log(objects)
         requestAnimationFrame(applyGliding);
     }
     const platforms = objects.slice(6, objects.length);
-const defaultCollisionMask = sphere.collisionFilter.mask;
+    const defaultCollisionMask = sphere.collisionFilter.mask;
 
-function phase() {
-    if (keysPressed.f) {
-        // Disable collisions for the sphere with all objects in colliders array
-        platforms.forEach(object => {
-            console.log('Disabling collisions for:', object);
-            object.collisionFilter.mask = 0;  // Set the mask to 0 to disable collisions
-        });
-        sphere.render.opacity = 0.5;  // Adjust opacity when phasing
-    } else {
-        // Enable collisions for the sphere with all objects in colliders array
-        platforms.forEach(object => {
+    function phase() {
+        if (keysPressed.f) {
+            // Disable collisions for the sphere with all objects in colliders array
+            platforms.forEach(object => {
+                console.log('Disabling collisions for:', object);
+                object.collisionFilter.mask = 0;  // Set the mask to 0 to disable collisions
+            });
+            sphere.render.opacity = 0.5;  // Adjust opacity when phasing
+        } else {
+            // Enable collisions for the sphere with all objects in colliders array
+            platforms.forEach(object => {
 
-            object.collisionFilter.mask = defaultCollisionMask;  // Reset the mask to default
-        });
-        sphere.render.opacity = 1;  // Reset opacity
+                object.collisionFilter.mask = defaultCollisionMask;  // Reset the mask to default
+            });
+            sphere.render.opacity = 1;  // Reset opacity
+        }
+
+        requestAnimationFrame(phase);
+    }
+    function shakeScreen() {
+        const shakeMagnitude = 1.5; // Adjust the magnitude of the shake
+        const originalTransform = render.canvas.style.transform;
+    
+        const startTime = Date.now();
+        const duration = 500; // Adjust the duration of the shake effect in milliseconds
+    
+        // Function to calculate the smooth shake effect
+        function calculateShake(offset, magnitude) {
+            const time = Date.now() - startTime;
+            const angle = (time / duration) * Math.PI * 2; // Use a full sine wave for the duration
+    
+            return Math.sin(angle) * magnitude * (1 - time / duration);
+        }
+    
+        // Apply the smooth shake effect to the canvas position
+        function updateShake() {
+            const offsetX = calculateShake(0, shakeMagnitude);
+            const offsetY = calculateShake(1, shakeMagnitude);
+    
+            render.canvas.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+    
+            // Continue updating the shake effect until the duration is reached
+            if (Date.now() - startTime < duration) {
+                requestAnimationFrame(updateShake);
+            } else {
+                // Reset the transform after the duration to stop the shake effect
+                render.canvas.style.transform = originalTransform;
+            }
+        }
+    
+        // Start the smooth shake effect
+        updateShake();
     }
 
-    requestAnimationFrame(phase);
-}
-    
     const colliders = objects.slice(2,objects.length)
     console.log(colliders)
     function checkGroundCollision() {
         const collisions = Matter.Query.collides(sphere, colliders);
         if (collisions.length > 0 && !keysPressed.up) {
             canJump = true;
+            if(sphere.velocity.y < -8) {
+                console.log(sphere.velocity.y)
+                shakeScreen()
+            }
         }
 
         requestAnimationFrame(checkGroundCollision);
@@ -228,7 +271,7 @@ function phase() {
       slam();
       checkBoxCollision();
       applyGliding();
-
+      phase();
       checkGroundCollision();
       
       document.addEventListener("keydown", function (e) {
@@ -250,3 +293,4 @@ function phase() {
           if (e.key === 'c') keysPressed.c = false;
           if (e.key === 'f') keysPressed.f = false;
       });    
+
