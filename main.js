@@ -30,8 +30,8 @@ var sphere = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 20, {
         fillStyle: 'blue',
     }
 });
-var box = Bodies.rectangle(window.innerWidth/2, 500, 200, 200, {
-    density: .1,
+var box = Bodies.circle(window.innerWidth/2, 500, 50, {
+    density: .001,
     render: {
         fillStyle: 'pink'
     }
@@ -131,43 +131,104 @@ console.log(objects)
         }
         requestAnimationFrame(slam);
     }
+    let collisionLine = null; // Declare the collisionLine variable outside the function
+
+
     function checkBoxCollision() {
         const collisions = Matter.Query.collides(sphere, [box]);
-        if(keysPressed.x){
-            sphere.render.strokeStyle = 'white';
-            sphere.restitution = 0;
-        }
+    
         if (collisions.length > 0 && keysPressed.x) {
             sphere.render.strokeStyle = 'white';
             sphere.restitution = 0;
     
             const collision = collisions[0];
+            const collisionPoint = collision.bodyB.position; // Collision point
             const collisionNormal = collision.normal;
     
             const forceMagnitude = Math.sqrt(collisionNormal.x ** 2 + collisionNormal.y ** 2);
             console.log('Force Magnitude:', forceMagnitude);
     
             const additionalForce = 0.01;
-            const scaleFactorSphere = .1; // Adjust this value as needed
-            const scaleFactorBox = 2
+            const scaleFactorSphere = 0.1; // Adjust this value as needed
+            const scaleFactorBox = .5;
     
             // Apply a greater force to the sphere
             Body.applyForce(sphere, sphere.position, {
                 x: collisionNormal.x * (forceMagnitude + additionalForce) * scaleFactorSphere,
                 y: collisionNormal.y * (forceMagnitude + additionalForce) * scaleFactorSphere,
             });
+    
             // Apply a greater force to the box
             Body.applyForce(box, box.position, {
                 x: -collisionNormal.x * (forceMagnitude + additionalForce) * scaleFactorBox,
                 y: -collisionNormal.y * (forceMagnitude + additionalForce) * scaleFactorBox,
             });
+    
+            // Remove the previous collision line if it exists
+            if (collisionLine) {
+                Composite.remove(engine.world, collisionLine);
+            }
+    
+            // Create a new collision line based on the collision normal
+            const lineLength = 100;
+            const lineThickness = 10;
+            const fadeDuration = 500; // 1.5 seconds
+    
+            const lineStart = {
+                x: collisionPoint.x - collisionNormal.x * lineLength / 2,
+                y: collisionPoint.y - collisionNormal.y * lineLength / 2,
+            };
+    
+            collisionLine = Bodies.rectangle(lineStart.x, lineStart.y, lineLength, lineThickness, {
+                angle: Math.atan2(collisionNormal.y, collisionNormal.x),
+                isStatic: true,
+                render: { fillStyle: 'white' },
+            });
+    
+            // Add the collision line to the world
+            Composite.add(engine.world, collisionLine);
+    
+            // Fade out the opacity over time
+            const startTime = Date.now();
+    
+            function updateFade() {
+                if (!collisionLine) {
+                    return; // Stop the fade if collisionLine is null
+                }
+    
+                const elapsed = Date.now() - startTime;
+                const alpha = 1 - Math.min(1, elapsed / fadeDuration); // Calculate alpha based on elapsed time
+    
+                // Update the fillStyle with the new alpha value
+                collisionLine.render.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+    
+                if (elapsed < fadeDuration) {
+                    requestAnimationFrame(updateFade);
+                }
+            }
+    
+            // Start the fading effect
+            updateFade();
         } else if (!keysPressed.x) {
+
             sphere.restitution = 0.8;
             sphere.render.strokeStyle = null;
             sphere.render.lineWidth = 0; // Set the width to 0 to remove the outline
+    
+            if (collisionLine) {
+
+                setTimeout(() => {
+                    Composite.remove(engine.world, collisionLine);
+                    collisionLine = null;
+                }, 500);
+            }
         }
+    
         requestAnimationFrame(checkBoxCollision);
     }
+    
+    // Call the function to start the collision checking loop
+    checkBoxCollision();
     function applyGliding() {
         const glideForce = .0004 // Adjust the glide force as needed
         let glideTime = 3000
