@@ -89,8 +89,8 @@ console.log(objects)
   Runner.run(runner, engine);
   
   // Apply force to move the sphere
-  var forceMagnitude = 0.001;
-  let jumpImpulse = -0.045   ; // Adjust jump impulse as needed
+  var forceMagnitude = 0.0005;
+  let jumpImpulse = -0.08   ; // Adjust jump impulse as needed
   var damping = 0.00007; // Adjust damping factor as needed
   
   // Track keys pressed
@@ -122,11 +122,11 @@ console.log(objects)
     }
     function slam() {
         if (keysPressed.down) {
-            jumpImpulse = -0.06; // Adjust the bounce impulse when holding down the down arrow key
-            sphere.restitution = 1;
+
+            sphere.restitution = .3;
             Body.applyForce(sphere, sphere.position, { x: 0, y: 0.0008 });
         } else {
-            jumpImpulse = -0.045 
+            jumpImpulse = -0.05
             sphere.restitution = 0.4;
         }
         requestAnimationFrame(slam);
@@ -169,7 +169,7 @@ console.log(objects)
         requestAnimationFrame(checkBoxCollision);
     }
     function applyGliding() {
-        const glideForce = .0024; // Adjust the glide force as needed
+        const glideForce = .0004 // Adjust the glide force as needed
         let glideTime = 3000
         if (keysPressed.c) {
             glideTime = 3000
