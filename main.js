@@ -6,7 +6,7 @@ var Engine = Matter.Engine,
     Body = Matter.Body;
 
 var engine = Engine.create({
-    gravity: { x: 0, y: .2  } // Set gravity in the y-direction
+    gravity: { x: 0, y: .4  } // Set gravity in the y-direction
 });
 
 // create a renderer
@@ -216,11 +216,8 @@ console.log(objects)
             sphere.render.lineWidth = 0; // Set the width to 0 to remove the outline
     
             if (collisionLine) {
-
-                setTimeout(() => {
-                    Composite.remove(engine.world, collisionLine);
-                    collisionLine = null;
-                }, 500);
+                Composite.remove(engine.world, collisionLine);
+                collisionLine = null;
             }
         }
     
@@ -230,7 +227,7 @@ console.log(objects)
     // Call the function to start the collision checking loop
     checkBoxCollision();
     function applyGliding() {
-        const glideForce = .0004 // Adjust the glide force as needed
+        const glideForce = .0009 // Adjust the glide force as needed
         let glideTime = 3000
         if (keysPressed.c) {
             glideTime = 3000
@@ -255,23 +252,28 @@ console.log(objects)
     
         requestAnimationFrame(applyGliding);
     }
-    const platforms = objects.slice(6, objects.length);
+    const platforms = objects.slice(2-6);
+    console.log(platforms)
     const defaultCollisionMask = sphere.collisionFilter.mask;
 
     function phase() {
         if (keysPressed.f) {
             // Disable collisions for the sphere with all objects in colliders array
-            platforms.forEach(object => {
-                console.log('Disabling collisions for:', object);
-                object.collisionFilter.mask = 0;  // Set the mask to 0 to disable collisions
-            });
+            sphere.collisionFilter.mask = 0
+            function canCollide(){
+                if(Matter.Query.collides(sphere, [ground,leftborder,rightborder,ceiling]).length > 0){
+                    sphere.collisionFilter.mask = defaultCollisionMask
+                }
+            }
+            canCollide()
+
             sphere.render.opacity = 0.5;  // Adjust opacity when phasing
         } else {
-            // Enable collisions for the sphere with all objects in colliders array
-            platforms.forEach(object => {
+            sphere.collisionFilter.mask = defaultCollisionMask
+            platforms.forEach((wall)=>{
 
-                object.collisionFilter.mask = defaultCollisionMask;  // Reset the mask to default
-            });
+                wall.collisionFilter.mask = defaultCollisionMask
+            })
             sphere.render.opacity = 1;  // Reset opacity
         }
 
