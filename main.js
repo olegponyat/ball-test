@@ -61,11 +61,7 @@ var ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 39, wi
     }
 });
 
-const objects = [ground, leftborder, rightborder, ceiling]
-const playerObjects = [sphere, box]
-playerObjects.forEach((player)=>{
-    objects.push(player)
-})
+const objects = [sphere, box, ground, leftborder, rightborder, ceiling]
 function randomNumberWidth(){
     return (Math.random() * window.innerWidth)
 }
@@ -153,8 +149,8 @@ console.log(objects)
             console.log('Force Magnitude:', forceMagnitude);
     
             const additionalForce = 0.01;
-            const scaleFactorSphere = 0.025; // Adjust this value as needed
-            const scaleFactorBox = 0.0125;
+            const scaleFactorSphere = 0.05; // Adjust this value as needed
+            const scaleFactorBox = 0.05;
     
             // Apply a greater force to the sphere
             Body.applyForce(sphere, sphere.position, {
@@ -237,6 +233,8 @@ console.log(objects)
     
             // Start the fading effect
             updateFade();
+            var audio = new Audio('')
+            audio.play()
         } else if (!keysPressed.x) {
 
             sphere.restitution = 0.8;
