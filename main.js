@@ -61,7 +61,11 @@ var ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 39, wi
     }
 });
 
-const objects = [sphere, box, ground, leftborder, rightborder, ceiling]
+const objects = [ground, leftborder, rightborder, ceiling]
+const playerObjects = [sphere, box]
+playerObjects.forEach((player)=>{
+    objects.push(player)
+})
 function randomNumberWidth(){
     return (Math.random() * window.innerWidth)
 }
@@ -122,7 +126,7 @@ console.log(objects)
     }
     function slam() {
         if (keysPressed.down) {
-
+            
             sphere.restitution = .3;
             Body.applyForce(sphere, sphere.position, { x: 0, y: 0.0008 });
         } else {
@@ -269,7 +273,6 @@ console.log(objects)
             }else{
                 Body.setVelocity(sphere, { x: sphere.velocity.x, y: 0 });
                 sphere.render.sprite.texture = null;
-                
                 glideTime = 3000    
             }
         }else{
@@ -279,7 +282,7 @@ console.log(objects)
     
         requestAnimationFrame(applyGliding);
     }
-    const platforms = objects.slice(2-6);
+    const platforms = objects.slice(0,2);
     console.log(platforms)
     const defaultCollisionMask = sphere.collisionFilter.mask;
 
@@ -297,10 +300,7 @@ console.log(objects)
             sphere.render.opacity = 0.5;  // Adjust opacity when phasing
         } else {
             sphere.collisionFilter.mask = defaultCollisionMask
-            platforms.forEach((wall)=>{
 
-                wall.collisionFilter.mask = defaultCollisionMask
-            })
             sphere.render.opacity = 1;  // Reset opacity
         }
 

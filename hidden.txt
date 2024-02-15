@@ -1,0 +1,290 @@
+shopping cart component<script setup>
+import { ref } from 'vue'
+
+defineProps({
+  propcart: Array,
+  numberprop: Number,
+})
+defineEmits(['removeall', 'removeone', 'clear'])
+function johnny(){
+  console.log(numberprop)
+}
+
+let Nav = false
+function toggleNav() {
+  Nav = !Nav
+  if(Nav){
+    document.getElementById("mySidebar").style.width = "500px";
+    document.getElementById("main").style.marginRight = "500px";
+
+  }
+  else{
+    document.getElementById("mySidebar").style.width = "0px";
+    document.getElementById("main").style.marginRight = "0px";
+  }
+}
+
+function closeNav() {
+  document.getElementById("mySidebar").style.width = "0";
+  document.getElementById("main").style.marginRight = "0px";
+}
+</script>
+<template>
+<h1>hey chat</h1>
+  <div id="mySidebar" class="sidebar">
+    <a href="javascript:void(0)" class="closebtn" @click="closeNav()">&times;</a>
+    <div class="item" v-for="item in propcart">
+      <h3>{{item.name}}</h3>
+      <div id="amount">X{{ item.amount }}</div>
+      <p>{{item.price}}</p>
+      <div class="btn-holder">
+        <button class="delete" @click="$emit('removeall', item)">Remove all</button>
+        <button  v-if="item.amount>1" class="delete" @click="$emit('removeone', item)">Remove one</button>
+      </div>      
+    </div>
+    <button if="clearbtn" v-if="propcart.length>0" @click="$emit('clear')">clear cart</button>
+    <div id="total" v-if="propcart.length>0"><p>Your total is: {{ numberprop }}</p></div>
+    <button @click="johnny">test</button>
+</div>
+
+
+<div class="cart">
+    <button class="openbtn" @click="toggleNav">
+      <img id="cartimg" src="https://cdn.pixabay.com/photo/2014/04/02/10/53/shopping-cart-304843_640.png"></button>
+  </div>
+</template>
+
+
+<style scoped>
+.item{
+  border-color:#fff3d8;
+  border-radius: 10px;
+  background-color: #fff3d8;
+  padding: 5px;
+  height: 300px;
+  width: 27%;
+  text-align: center;
+  margin-top: 55px;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  margin-bottom: 5px;
+}
+#amount{
+  position:absolute;
+  color: #818181;
+}
+.item .btn-holder{
+  justify-content: center;
+  display: flex;
+}
+.sidebar .item{
+  width: 80%;
+  min-height: 275px;
+  margin-top: 50px;
+  margin-bottom: 5px;
+}
+.cart { 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    z-index: 10;
+    height: 130px;
+    width: 130px;
+}
+#cartimg {
+  width: 100%;
+  height: auto;
+  z-index: -1;
+}
+
+
+.sidebar {
+  height: 100%; /* 100% Full-height */
+  width: 0; /* 0 width - change this with JavaScript */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Stay on top */
+  top: 0;
+  right: 0;
+  background-color:#839eb9 ; /* Black*/
+  overflow-x: hidden; /* Disable horizontal scroll */
+  transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding-bottom: 10px;
+  overflow-y: scroll;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* The sidebar links */
+.sidebar a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+}
+
+/* When you mouse over the navigation links, change their color */
+.sidebar a:hover {
+  color: #f1f1f1;
+}
+
+/* Position and style the close button (top right corner) */
+.sidebar .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+.openbtn {
+  font-size: 20px;
+  cursor: pointer;
+  padding: 10px 15px;
+  border: none;
+  background-color: transparent;
+
+}
+
+#clearbtn{
+  margin-bottom: 10px;
+}
+#total{
+  margin-top: 10px;
+  border-color: #e66a65;
+  background-color:#e66a65;
+  border-radius: 10px;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+#total  p{
+  right: 0;
+}
+</style>
+
+
+<script setup>
+import { reactive } from 'vue'
+import { ref } from 'vue'
+import shoppingcart from './components/shoppingcart.vue'
+const items=[
+  {"name":"burt's bees squeezy tinted balm", "price":500, "amount":1}, {"name":"lenovo monitor", "price":50, "amount":1}, {"name":"lenovo mouse", "price":10, "amount":1},{"name":"iphone charger", "price":20, "amount":1},{"name":"reusable water bottle", "price":15, "amount":1},{"name":"blender", "price":100, "amount":1},{"name":"yoga mat", "price":30, "amount":1},{"name":"scented candle", "price":25, "amount":1},{"name":"picture frames", "price":40, "amount":1}
+]
+const cart = reactive([])
+let total = ref(0)
+
+function add(x){
+  const place = cart.indexOf(x);
+  if(!cart.includes(x)){
+    cart.push(x)
+  }
+  else{
+    cart[place]["amount"]+=1
+    console.log(cart[place]["amount"])
+  }
+  total = 0
+  for(let i = 0; i < cart.length; i++){
+    total=ref(total+(cart[i]["price"]*cart[i]["amount"]))
+  }
+  console.log(total)
+}
+
+
+
+function removeall(item){
+  const index = cart.indexOf(item);
+  cart.splice(index, 1)
+  total = 0
+  for(let i = 0; i < cart.length; i++){
+    total=ref(cart[i]["price"])
+  };
+  console.log(total)
+
+}
+function removeone(item){
+  const index = cart.indexOf(item);
+  cart[index]["amount"]-=1
+  total = 0
+  for(let i = 0; i < cart.length; i++){
+    total=ref(cart[i]["price"])
+  };
+
+}
+function clear(){
+  cart.length=0
+  total=ref(0)
+}
+
+
+</script>
+<template>
+  
+
+<div id="main">
+  <h1>buy things</h1>
+  
+  <div class="flex-wrapper">
+    <div class="item" v-for="item in items">
+      <h3>{{item.name}}</h3>
+      <p>{{item.price}}</p>
+      <div class="btn-holder">
+        <button class="addtocart" @click="add(item)">Add to Cart</button>
+      </div>
+      
+    </div>
+  </div>
+</div>
+ 
+<shoppingcart :propcart="cart" :numberprop="total" @removeall="removeall" @removeone="removeone" @clear="clear" />
+
+</template>
+
+<style>
+html{
+  background-color: slategray;
+}
+h1{
+  color:#40bdaa;
+}
+.flex-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item{
+  border-color:#fff3d8;
+  border-radius: 10px;
+  background-color: #fff3d8;
+  padding: 5px;
+  height: 300px;
+  width: 27%;
+  text-align: center;
+  margin-top: 55px;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  margin-bottom: 5px;
+}
+.addtocart{
+  bottom:0;
+  right:50%;
+}
+#main{
+  transition: 0.5s;
+  margin-left: 115px;
+  margin-right: 115px;
+}
+
+</style>
