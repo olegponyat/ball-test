@@ -30,7 +30,7 @@ var sphere = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 20, {
         fillStyle: 'blue',
     }
 });
-var box = Bodies.circle(window.innerWidth/2, 500, 50, {
+var box = Bodies.circle(window.innerWidth/2, 500, 20, {
     density: .001,
     render: {
         fillStyle: 'pink'
@@ -132,7 +132,7 @@ console.log(objects)
         requestAnimationFrame(slam);
     }
     let collisionLine = null; // Declare the collisionLine variable outside the function
-
+    let oval = null
 
     function checkBoxCollision() {
         const collisions = Matter.Query.collides(sphere, [box]);
@@ -149,8 +149,8 @@ console.log(objects)
             console.log('Force Magnitude:', forceMagnitude);
     
             const additionalForce = 0.01;
-            const scaleFactorSphere = 0.1; // Adjust this value as needed
-            const scaleFactorBox = .5;
+            const scaleFactorSphere = 0.025; // Adjust this value as needed
+            const scaleFactorBox = 0.0125;
     
             // Apply a greater force to the sphere
             Body.applyForce(sphere, sphere.position, {
@@ -168,11 +168,14 @@ console.log(objects)
             if (collisionLine) {
                 Composite.remove(engine.world, collisionLine);
             }
+            if (oval) {
+                Composite.remove(engine.world, oval)
+            }
     
             // Create a new collision line based on the collision normal
             const lineLength = 100;
             const lineThickness = 10;
-            const fadeDuration = 500; // 1.5 seconds
+            const fadeDuration = 500; // .5 seconds
     
             const lineStart = {
                 x: collisionPoint.x - collisionNormal.x * lineLength / 2,
@@ -182,11 +185,28 @@ console.log(objects)
             collisionLine = Bodies.rectangle(lineStart.x, lineStart.y, lineLength, lineThickness, {
                 angle: Math.atan2(collisionNormal.y, collisionNormal.x),
                 isStatic: true,
+                collisionFilter: false,
                 render: { fillStyle: 'white' },
             });
-    
+
+            const ovalPosition = {
+                x: lineStart.x + Math.cos(collisionLine.angle) * lineLength / 2,
+                y: lineStart.y + Math.sin(collisionLine.angle) * lineLength / 2,
+            };
+            let rad = 20
+            oval = Bodies.circle(ovalPosition.x, ovalPosition.y, rad, {
+                angle: collisionLine.angle,
+                isStatic: true,
+                collisionFilter: false,
+                render: { fillStyle: 'white' },
+            })
+
+            Body.scale(oval, 1, 0.3)
+
+            
+
             // Add the collision line to the world
-            Composite.add(engine.world, collisionLine);
+            Composite.add(engine.world, [collisionLine, oval]);
     
             // Fade out the opacity over time
             const startTime = Date.now();
@@ -195,12 +215,16 @@ console.log(objects)
                 if (!collisionLine) {
                     return; // Stop the fade if collisionLine is null
                 }
-    
+                if (!oval) {
+                    return;
+                }
+
                 const elapsed = Date.now() - startTime;
                 const alpha = 1 - Math.min(1, elapsed / fadeDuration); // Calculate alpha based on elapsed time
     
                 // Update the fillStyle with the new alpha value
-                collisionLine.render.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                collisionLine.render.fillStyle = `rgba(255, 255, 255, ${alpha})`
+                oval.render.fillStyle = `rgba(255,255,255, ${alpha})`
     
                 if (elapsed < fadeDuration) {
                     requestAnimationFrame(updateFade);
@@ -216,7 +240,8 @@ console.log(objects)
             sphere.render.lineWidth = 0; // Set the width to 0 to remove the outline
     
             if (collisionLine) {
-                Composite.remove(engine.world, collisionLine);
+                Composite.remove(engine.world, [collisionLine,oval]);
+                oval = null
                 collisionLine = null;
             }
         }
@@ -229,20 +254,22 @@ console.log(objects)
     function applyGliding() {
         const glideForce = .0009 // Adjust the glide force as needed
         let glideTime = 3000
-        if (keysPressed.c) {
+        if (keysPressed.c && !canJump) {
             glideTime = 3000
             const glideImage = 'https://static.wikia.nocookie.net/minecraft_gamepedia/images/1/1f/Elytra_%28item%29_JE1_BE1.png/revision/latest?cb=20190502042255';
             sphere.render.sprite.texture = glideImage;
-            if (sphere.velocity.y > 0) {
+            if (sphere.velocity.y > 0 ) {
                 Body.applyForce(sphere, sphere.position, { x: 0, y: -glideForce });
                 setTimeout(() => {
                     sphere.render.sprite.texture = null;
                     keysPressed.c = false; // Release the gliding key                
                 }, glideTime);
+                clearTimeout()
                 glideTime = 3000
             }else{
-                sphere.render.sprite.texture = null;
                 Body.setVelocity(sphere, { x: sphere.velocity.x, y: 0 });
+                sphere.render.sprite.texture = null;
+                
                 glideTime = 3000    
             }
         }else{
