@@ -117,6 +117,34 @@ console.log(objects)
       if (keysPressed.up && canJump) {
           Body.applyForce(sphere, sphere.position, { x: 0, y: jumpImpulse });
           canJump = false;
+          function createSmoke(x, y) {
+            function getRandomNumber() {
+                return Math.floor(Math.random() * 15)
+            }
+            var smokeParticle = Bodies.circle(x, y, Math.random() * 10 + 5, {
+                collisionFilter: false,
+                render: {
+                    fillStyle: 'rgba(255,255,255,0.5)'
+                }
+            });
+            let particles = []
+            for(let i = 0; i < getRandomNumber(); i++ ){
+                particles.push(smokeParticle)
+            }
+        
+            Composite.add(engine.world, particles);
+
+            setTimeout(function() {
+                Composite.remove(engine.world, smokeParticle);
+            }, 400);
+        
+            // Apply a small random force to the particle to make it "rise"
+            Body.applyForce(smokeParticle, smokeParticle.position, {
+                x: (Math.random() - 0.5) * 0.02,
+                y: -Math.random() * 0.02
+            });
+        }
+        createSmoke(sphere.position.x, sphere.position.y)        
       }
       requestAnimationFrame(jump);
     }
