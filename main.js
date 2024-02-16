@@ -6,7 +6,7 @@ var Engine = Matter.Engine,
     Body = Matter.Body;
 
 var engine = Engine.create({
-    gravity: { x: 0, y: .4  } // Set gravity in the y-direction
+    gravity: { x: 0, y: .2  } // Set gravity in the y-direction
 });
 
 // create a renderer
@@ -149,8 +149,8 @@ console.log(objects)
             console.log('Force Magnitude:', forceMagnitude);
     
             const additionalForce = 0.01;
-            const scaleFactorSphere = 0.025; // Adjust this value as needed
-            const scaleFactorBox = 0.0125;
+            const scaleFactorSphere = 0.125; // Adjust this value as needed
+            const scaleFactorBox = 0.125;
     
             // Apply a greater force to the sphere
             Body.applyForce(sphere, sphere.position, {
@@ -193,17 +193,14 @@ console.log(objects)
                 x: lineStart.x + Math.cos(collisionLine.angle) * lineLength / 2,
                 y: lineStart.y + Math.sin(collisionLine.angle) * lineLength / 2,
             };
-            let rad = 20
-            oval = Bodies.circle(ovalPosition.x, ovalPosition.y, rad, {
-                angle: collisionLine.angle,
+            oval = Bodies.circle(ovalPosition.x, ovalPosition.y, 20, {
                 isStatic: true,
                 collisionFilter: false,
                 render: { fillStyle: 'white' },
-            })
+            });
 
             Body.scale(oval, 1, 0.3)
-
-            
+            Body.setAngle(oval, collisionLine.angle + Math.PI / 2);
 
             // Add the collision line to the world
             Composite.add(engine.world, [collisionLine, oval]);
@@ -226,9 +223,17 @@ console.log(objects)
                 collisionLine.render.fillStyle = `rgba(255, 255, 255, ${alpha})`
                 oval.render.fillStyle = `rgba(255,255,255, ${alpha})`
     
+                const scaleFactor = 1 + .1 * alpha; // Adjust the scale factor as needed
+                Body.scale(oval, 1.01, 1.01);
+
                 if (elapsed < fadeDuration) {
                     requestAnimationFrame(updateFade);
-                }
+                }else {
+                    // Animation complete, remove the line and oval
+                    Composite.remove(engine.world, [collisionLine, oval]);
+                    oval = null;
+                    collisionLine = null;
+                }   
             }
     
             // Start the fading effect
@@ -240,7 +245,7 @@ console.log(objects)
             sphere.render.lineWidth = 0; // Set the width to 0 to remove the outline
     
             if (collisionLine) {
-                Composite.remove(engine.world, [collisionLine,oval]);
+                Composite.remove(engine.world, [collisionLine, oval]);
                 oval = null
                 collisionLine = null;
             }
@@ -249,8 +254,6 @@ console.log(objects)
         requestAnimationFrame(checkBoxCollision);
     }
     
-    // Call the function to start the collision checking loop
-    checkBoxCollision();
     function applyGliding() {
         const glideForce = .0009 // Adjust the glide force as needed
         let glideTime = 3000
