@@ -117,12 +117,40 @@ console.log(objects)
       if (keysPressed.up && canJump) {
           Body.applyForce(sphere, sphere.position, { x: 0, y: jumpImpulse });
           canJump = false;
+          function createSmoke(x, y) {
+            function getRandomNumber() {
+                return Math.floor(Math.random() * 15)
+            }
+            var smokeParticle = Bodies.circle(x, y, Math.random() * 10 + 5, {
+                collisionFilter: false,
+                render: {
+                    fillStyle: 'rgba(255,255,255,0.5)'
+                }
+            });
+            let particles = []
+            for(let i = 0; i < getRandomNumber(); i++ ){
+                particles.push(smokeParticle)
+            }
+        
+            Composite.add(engine.world, particles);
+
+            setTimeout(function() {
+                Composite.remove(engine.world, smokeParticle);
+            }, 400);
+        
+            // Apply a small random force to the particle to make it "rise"
+            Body.applyForce(smokeParticle, smokeParticle.position, {
+                x: (Math.random() - 0.5) * 0.02,
+                y: -Math.random() * 0.02
+            });
+        }
+        createSmoke(sphere.position.x, sphere.position.y)        
       }
       requestAnimationFrame(jump);
     }
     function slam() {
         if (keysPressed.down) {
-
+            
             sphere.restitution = .3;
             Body.applyForce(sphere, sphere.position, { x: 0, y: 0.0008 });
         } else {
@@ -238,6 +266,8 @@ console.log(objects)
     
             // Start the fading effect
             updateFade();
+            var audio = new Audio('')
+            audio.play()
         } else if (!keysPressed.x) {
 
             sphere.restitution = 0.8;
@@ -272,7 +302,6 @@ console.log(objects)
             }else{
                 Body.setVelocity(sphere, { x: sphere.velocity.x, y: 0 });
                 sphere.render.sprite.texture = null;
-                
                 glideTime = 3000    
             }
         }else{
@@ -282,7 +311,7 @@ console.log(objects)
     
         requestAnimationFrame(applyGliding);
     }
-    const platforms = objects.slice(2-6);
+    const platforms = objects.slice(0,2);
     console.log(platforms)
     const defaultCollisionMask = sphere.collisionFilter.mask;
 
@@ -300,10 +329,7 @@ console.log(objects)
             sphere.render.opacity = 0.5;  // Adjust opacity when phasing
         } else {
             sphere.collisionFilter.mask = defaultCollisionMask
-            platforms.forEach((wall)=>{
 
-                wall.collisionFilter.mask = defaultCollisionMask
-            })
             sphere.render.opacity = 1;  // Reset opacity
         }
 
