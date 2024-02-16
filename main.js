@@ -6,7 +6,7 @@ var Engine = Matter.Engine,
     Body = Matter.Body;
 
 var engine = Engine.create({
-    gravity: { x: 0, y: .2  } // Set gravity in the y-direction
+    gravity: { x: 0, y: .1  } // Set gravity in the y-direction
 });
 
 // create a renderer
@@ -17,7 +17,7 @@ var render = Render.create({
         width: window.innerWidth,
         height: window.innerHeight,
         wireframes: false, // Set to true for wireframe view
-        pixelRatio: 'auto' // Adjust pixelRatio to fix white corners
+        pixelRatio: '1' // Adjust pixelRatio to fix white corners
     }
 });
 console.log(window.innerWidth)
@@ -144,7 +144,7 @@ console.log(objects)
                 y: -Math.random() * 0.02
             });
         }
-        createSmoke(sphere.position.x, sphere.position.y)        
+        createSmoke(sphere.position.x, sphere.position.y)
       }
       requestAnimationFrame(jump);
     }
@@ -221,6 +221,7 @@ console.log(objects)
                 x: lineStart.x + Math.cos(collisionLine.angle) * lineLength / 2,
                 y: lineStart.y + Math.sin(collisionLine.angle) * lineLength / 2,
             };
+
             oval = Bodies.circle(ovalPosition.x, ovalPosition.y, 20, {
                 isStatic: true,
                 collisionFilter: false,
@@ -263,17 +264,50 @@ console.log(objects)
                     collisionLine = null;
                 }   
             }
-    
-            // Start the fading effect
+
+            function shakeScreen() {
+                const shakeMagnitude = 5; // Adjust the magnitude of the shake
+                const originalTransform = render.canvas.style.transform;
+            
+                const startTime = Date.now();
+                const duration = 500; // Adjust the duration of the shake effect in milliseconds
+            
+                // Function to calculate the smooth shake effect
+                function calculateShake(offset, magnitude) {
+                    const time = Date.now() - startTime;
+                    const angle = (time / duration) * Math.PI * 2; // Use a full sine wave for the duration
+            
+                    return Math.sin(angle) * magnitude * (1 - time / duration);
+                }
+
+                // Apply the smooth shake effect to the canvas position
+                function updateShake() {
+                    const offsetX = calculateShake(1, shakeMagnitude);
+                    const offsetY = calculateShake(1, shakeMagnitude);
+            
+                    render.canvas.style.transform = `translate(${offsetX}px, ${-offsetY}px)`;
+            
+                    // Continue updating the shake effect until the duration is reached
+                    if (Date.now() - startTime < duration) {
+                        requestAnimationFrame(updateShake);
+                    } else {
+                        // Reset the transform after the duration to stop the shake effect
+                        render.canvas.style.transform = originalTransform;
+                    }
+                }
+            
+                // Start the smooth shake effect
+                updateShake();
+            }
+            shakeScreen()            
             updateFade();
-            var audio = new Audio('')
+            var audio = new Audio('fart.wav')
             audio.play()
         } else if (!keysPressed.x) {
-
+            
             sphere.restitution = 0.8;
             sphere.render.strokeStyle = null;
             sphere.render.lineWidth = 0; // Set the width to 0 to remove the outline
-    
             if (collisionLine) {
                 Composite.remove(engine.world, [collisionLine, oval]);
                 oval = null
@@ -285,28 +319,29 @@ console.log(objects)
     }
     
     function applyGliding() {
-        const glideForce = .0009 // Adjust the glide force as needed
-        let glideTime = 3000
+        const glideForce = 0.0002; // Adjust the glide force as needed
+        let glideTime = 3000;
+    
         if (keysPressed.c && !canJump) {
-            glideTime = 3000
-            const glideImage = 'https://static.wikia.nocookie.net/minecraft_gamepedia/images/1/1f/Elytra_%28item%29_JE1_BE1.png/revision/latest?cb=20190502042255';
+            const glideImage =
+                'ballelytra.png'
             sphere.render.sprite.texture = glideImage;
-            if (sphere.velocity.y > 0 ) {
+    
+    
+            if (sphere.velocity.y > 0) {
                 Body.applyForce(sphere, sphere.position, { x: 0, y: -glideForce });
+    
                 setTimeout(() => {
                     sphere.render.sprite.texture = null;
-                    keysPressed.c = false; // Release the gliding key                
+                    keysPressed.c = false; // Release the gliding key
                 }, glideTime);
-                clearTimeout()
-                glideTime = 3000
-            }else{
+            } else {
                 Body.setVelocity(sphere, { x: sphere.velocity.x, y: 0 });
                 sphere.render.sprite.texture = null;
-                glideTime = 3000    
             }
-        }else{
+        } else {
             sphere.render.sprite.texture = null;
-            glideTime = 3000 
+
         }
     
         requestAnimationFrame(applyGliding);
