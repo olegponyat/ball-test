@@ -6,7 +6,7 @@ var Engine = Matter.Engine,
     Body = Matter.Body;
 
 var engine = Engine.create({
-    gravity: { x: 0, y: .1  } // Set gravity in the y-direction
+    gravity: { x: 0, y: .3  } // Set gravity in the y-direction
 });
 
 // create a renderer
@@ -164,9 +164,10 @@ console.log(objects)
 
     function checkBoxCollision() {
         const collisions = Matter.Query.collides(sphere, [box]);
-    
+        sphere.render.strokeStyle = 'white';
+        sphere.render.lineWidth = 5;
         if (collisions.length > 0 && keysPressed.x) {
-            sphere.render.strokeStyle = 'white';
+            
             sphere.restitution = 0;
     
             const collision = collisions[0];
@@ -319,7 +320,7 @@ console.log(objects)
     }
     
     function applyGliding() {
-        const glideForce = 0.0002; // Adjust the glide force as needed
+        const glideForce = 0.0006; // Adjust the glide force as needed
         let glideTime = 3000;
     
         if (keysPressed.c && !canJump) {
