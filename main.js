@@ -164,10 +164,9 @@ console.log(objects)
 
     function checkBoxCollision() {
         const collisions = Matter.Query.collides(sphere, [box]);
-    
+        sphere.restitution = 0;
         if (collisions.length > 0 && keysPressed.x) {
             sphere.render.strokeStyle = 'white';
-            sphere.restitution = 0;
     
             const collision = collisions[0];
             const collisionPoint = collision.bodyB.position; // Collision point
@@ -305,7 +304,7 @@ console.log(objects)
             audio.play()
         } else if (!keysPressed.x) {
             
-            sphere.restitution = 0.8;
+            sphere.restitution = .8;
             sphere.render.strokeStyle = null;
             sphere.render.lineWidth = 0; // Set the width to 0 to remove the outline
             if (collisionLine) {
@@ -319,21 +318,16 @@ console.log(objects)
     }
     
     function applyGliding() {
-        const glideForce = 0.0002; // Adjust the glide force as needed
-        let glideTime = 3000;
-    
+        const glideForce = 0.00022; // Adjust the glide force as needed
+
         if (keysPressed.c && !canJump) {
-            const glideImage =
-                'ballelytra.png'
-            sphere.render.sprite.texture = glideImage;
-    
-    
             if (sphere.velocity.y > 0) {
                 Body.applyForce(sphere, sphere.position, { x: 0, y: -glideForce });
-    
+                let glideTime = 3000;
                 setTimeout(() => {
                     sphere.render.sprite.texture = null;
                     keysPressed.c = false; // Release the gliding key
+
                 }, glideTime);
             } else {
                 Body.setVelocity(sphere, { x: sphere.velocity.x, y: 0 });
