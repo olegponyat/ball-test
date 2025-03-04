@@ -6,7 +6,7 @@ var Engine = Matter.Engine,
     Body = Matter.Body;
 
 var engine = Engine.create({
-    gravity: { x: 0, y: .3  } // Set gravity in the y-direction
+    gravity: { x: 0, y: .15} // Set gravity in the y-direction
 });
 
 // create a renderer
@@ -20,9 +20,8 @@ var render = Render.create({
         pixelRatio: '1' // Adjust pixelRatio to fix white corners
     }
 });
-console.log(window.innerWidth)
 var sphere = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 20, {
-    restitution: .4,
+    restitution: 1,
     friction: 0,
     density: 0.002,
     frictionAir: .008, // Adjust air friction for sliding
@@ -161,6 +160,17 @@ console.log(objects)
     }
     let collisionLine = null; // Declare the collisionLine variable outside the function
     let oval = null
+
+    function updateSphere() {
+        // Apply any forces or movement to the sphere here, as normal
+        applyForces();  // Your existing function for applying forces to the sphere
+        jump();         // Your existing jump function
+        slam();         // Your existing slam function
+    
+        // Manually update the sphere's position, velocity, and any other properties that need to be updated.
+        // This ensures the sphere is not affected by the time scale.
+        Matter.Engine.update(engine, 1000 / 60); // Update the engine manually at the usual frame rate
+    }
 
     function checkBoxCollision() {
         const collisions = Matter.Query.collides(sphere, [box]);
@@ -319,12 +329,12 @@ console.log(objects)
     }
     
     function applyGliding() {
-        const glideForce = 0.00022; // Adjust the glide force as needed
+        const glideForce = 0.00033; // Adjust the glide force as needed
 
         if (keysPressed.c && !canJump) {
             if (sphere.velocity.y > 0) {
                 Body.applyForce(sphere, sphere.position, { x: 0, y: -glideForce });
-                let glideTime = 3000;
+                let glideTime = 10000;
                 setTimeout(() => {
                     sphere.render.sprite.texture = null;
                     keysPressed.c = false; // Release the gliding key
@@ -399,6 +409,46 @@ console.log(objects)
         // Start the smooth shake effect
         updateShake();
     }
+    var trailPoints = [];
+
+    // sandevistan effect function
+    function sandevistanEffect() {
+        if (keysPressed.m) {
+            // Slow down time for other objects but not the player
+            engine.timing.timeScale = 0.2;
+        } else {
+            engine.timing.timeScale = 1;
+        }
+
+        // Record the player's position for the trail
+        if (keysPressed.m) {
+            var now = Date.now();
+            var hue = (now / 10) % 360;
+            trailPoints.push({ x: sphere.position.x, y: sphere.position.y, time: now, hue: hue });
+        }
+
+        // Remove old trail points
+        var cutoff = Date.now() - 500;
+        trailPoints = trailPoints.filter(pt => pt.time > cutoff);
+
+        // Draw the trail with a rainbow color effect
+        var context = render.context;
+        context.save();
+        trailPoints.forEach(pt => {
+            var age = Date.now() - pt.time;
+            var alpha = 1 - (age / 500);
+            context.fillStyle = `hsla(${pt.hue}, 100%, 50%, ${alpha})`;
+            context.beginPath();
+            context.arc(pt.x, pt.y, 10, 0, Math.PI * 2);
+            context.fill();
+        });
+        context.restore();
+        updateSphere();
+        // Update the engine after each frame
+        requestAnimationFrame(sandevistanEffect);
+    }
+
+
 
     const colliders = objects.slice(2,objects.length)
     console.log(colliders)
@@ -422,7 +472,8 @@ console.log(objects)
       applyGliding();
       phase();
       checkGroundCollision();
-      
+      sandevistanEffect();
+
       document.addEventListener("keydown", function (e) {
           if (e.key === 'ArrowLeft') keysPressed.left = true;
           if (e.key === 'ArrowRight') keysPressed.right = true;
@@ -431,6 +482,7 @@ console.log(objects)
           if (e.key === 'x') keysPressed.x = true;
           if (e.key === 'c') keysPressed.c = true;
           if (e.key === 'f') keysPressed.f = true;
+          if (e.key === 'm') keysPressed.m = true;
       });
       
       document.addEventListener("keyup", function (e) {
@@ -441,5 +493,6 @@ console.log(objects)
           if (e.key === 'x') keysPressed.x = false;
           if (e.key === 'c') keysPressed.c = false;
           if (e.key === 'f') keysPressed.f = false;
+          if (e.key === 'm') keysPressed.m = false;
       });    
 
