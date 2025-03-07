@@ -6,25 +6,25 @@ var Engine = Matter.Engine,
     Body = Matter.Body;
 
 var engine = Engine.create({
-    gravity: { x: 0, y: .15} // Set gravity in the y-direction
+    gravity: { x: 0, y: .15} 
 });
 
-// create a renderer
+
 var render = Render.create({
     element: document.body,
     engine: engine,
     options: {
         width: window.innerWidth,
         height: window.innerHeight,
-        wireframes: false, // Set to true for wireframe view
-        pixelRatio: '1' // Adjust pixelRatio to fix white corners
+        wireframes: false, 
+        pixelRatio: '1' 
     }
 });
 var sphere = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 20, {
     restitution: 1,
     friction: 0,
     density: 0.002,
-    frictionAir: .008, // Adjust air friction for sliding
+    frictionAir: .008, 
     render: {
         fillStyle: 'blue',
     }
@@ -38,25 +38,25 @@ var box = Bodies.circle(window.innerWidth/2, 500, 20, {
 var leftborder = Bodies.rectangle(0,window.innerHeight-480,1,window.innerHeight,{
     isStatic: true,
     render: {
-        fillStyle: 'green' // Rectangle color
+        fillStyle: 'green' 
     }
 })
 var rightborder = Bodies.rectangle(window.innerWidth,(window.innerHeight-480),1,window.innerHeight,{
     isStatic: true,
     render: {
-        fillStyle: 'green' // Rectangle color
+        fillStyle: 'green' 
     }
 })
 var ceiling = Bodies.rectangle(960,1,window.innerWidth,1,{
     isStatic: true,
     render: {
-        fillStyle: 'pink' // Rectangle color
+        fillStyle: 'pink' 
     }
 })
 var ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 39, window.innerWidth, 80, {
     isStatic: true,
     render: {
-        fillStyle: 'green' // Rectangle color
+        fillStyle: 'green' 
     }
 });
 
@@ -87,31 +87,31 @@ console.log(objects)
   
   Runner.run(runner, engine);
   
-  // Apply force to move the sphere
-  var forceMagnitude = 0.0005;
-  let jumpImpulse = -0.08   ; // Adjust jump impulse as needed
-  var damping = 0.00007; // Adjust damping factor as needed
   
-  // Track keys pressed
+  var forceMagnitude = 0.0005;
+  let jumpImpulse = -0.08   ; 
+  var damping = 0.00007; 
+  
+  
   var keysPressed = { up: false, down: false, left: false, right: false, x: false, c: false, f: false};
   
-  // Flag to track if the sphere is in the air
+  
   var isJumping = false;
   
-  // Flag to check if the sphere can jump
+  
   let canJump = false;
   
-  // Continuous force application
+  
   function applyForces() {
-      // Apply horizontal movement force
+      
       Body.applyForce(sphere, sphere.position, { x: forceMagnitude * (keysPressed.right - keysPressed.left), y: 0 });
   
-      // Apply damping forces for more realistic movement
+      
       Body.applyForce(sphere, sphere.position, { x: -sphere.velocity.x * damping, y: 0.00001 });
    
       requestAnimationFrame(applyForces);
   }
-  // Continuous jump animation
+  
     function jump() {
       if (keysPressed.up && canJump) {
           Body.applyForce(sphere, sphere.position, { x: 0, y: jumpImpulse });
@@ -137,7 +137,7 @@ console.log(objects)
                 Composite.remove(engine.world, smokeParticle);
             }, 400);
         
-            // Apply a small random force to the particle to make it "rise"
+            
             Body.applyForce(smokeParticle, smokeParticle.position, {
                 x: (Math.random() - 0.5) * 0.02,
                 y: -Math.random() * 0.02
@@ -158,18 +158,18 @@ console.log(objects)
         }
         requestAnimationFrame(slam);
     }
-    let collisionLine = null; // Declare the collisionLine variable outside the function
+    let collisionLine = null; 
     let oval = null
 
     function updateSphere() {
-        // Apply any forces or movement to the sphere here, as normal
-        applyForces();  // Your existing function for applying forces to the sphere
-        jump();         // Your existing jump function
-        slam();         // Your existing slam function
+        
+        applyForces();  
+        jump();         
+        slam();         
     
-        // Manually update the sphere's position, velocity, and any other properties that need to be updated.
-        // This ensures the sphere is not affected by the time scale.
-        Matter.Engine.update(engine, 1000 / 60); // Update the engine manually at the usual frame rate
+        
+        
+        Matter.Engine.update(engine, 1000 / 60); 
     }
 
     function checkBoxCollision() {
@@ -180,29 +180,29 @@ console.log(objects)
             sphere.render.strokeStyle = 'white';
     
             const collision = collisions[0];
-            const collisionPoint = collision.bodyB.position; // Collision point
+            const collisionPoint = collision.bodyB.position; 
             const collisionNormal = collision.normal;
     
             const forceMagnitude = Math.sqrt(collisionNormal.x ** 2 + collisionNormal.y ** 2);
             console.log('Force Magnitude:', forceMagnitude);
     
             const additionalForce = 0.01;
-            const scaleFactorSphere = 0.125; // Adjust this value as needed
+            const scaleFactorSphere = 0.125; 
             const scaleFactorBox = 0.125;
     
-            // Apply a greater force to the sphere
+            
             Body.applyForce(sphere, sphere.position, {
                 x: collisionNormal.x * (forceMagnitude + additionalForce) * scaleFactorSphere,
                 y: collisionNormal.y * (forceMagnitude + additionalForce) * scaleFactorSphere,
             });
     
-            // Apply a greater force to the box
+            
             Body.applyForce(box, box.position, {
                 x: -collisionNormal.x * (forceMagnitude + additionalForce) * scaleFactorBox,
                 y: -collisionNormal.y * (forceMagnitude + additionalForce) * scaleFactorBox,
             });
     
-            // Remove the previous collision line if it exists
+            
             if (collisionLine) {
                 Composite.remove(engine.world, collisionLine);
             }
@@ -210,10 +210,10 @@ console.log(objects)
                 Composite.remove(engine.world, oval)
             }
     
-            // Create a new collision line based on the collision normal
+            
             const lineLength = 100;
             const lineThickness = 10;
-            const fadeDuration = 500; // .5 seconds
+            const fadeDuration = 500; 
     
             const lineStart = {
                 x: collisionPoint.x - collisionNormal.x * lineLength / 2,
@@ -241,34 +241,34 @@ console.log(objects)
             Body.scale(oval, 1, 0.3)
             Body.setAngle(oval, collisionLine.angle + Math.PI / 2);
 
-            // Add the collision line to the world
+            
             Composite.add(engine.world, [collisionLine, oval]);
     
-            // Fade out the opacity over time
+            
             const startTime = Date.now();
     
             function updateFade() {
                 if (!collisionLine) {
-                    return; // Stop the fade if collisionLine is null
+                    return; 
                 }
                 if (!oval) {
                     return;
                 }
 
                 const elapsed = Date.now() - startTime;
-                const alpha = 1 - Math.min(1, elapsed / fadeDuration); // Calculate alpha based on elapsed time
+                const alpha = 1 - Math.min(1, elapsed / fadeDuration); 
     
-                // Update the fillStyle with the new alpha value
+                
                 collisionLine.render.fillStyle = `rgba(255, 255, 255, ${alpha})`
                 oval.render.fillStyle = `rgba(255,255,255, ${alpha})`
     
-                const scaleFactor = 1 + .1 * alpha; // Adjust the scale factor as needed
+                const scaleFactor = 1 + .1 * alpha; 
                 Body.scale(oval, 1.01, 1.01);
 
                 if (elapsed < fadeDuration) {
                     requestAnimationFrame(updateFade);
                 }else {
-                    // Animation complete, remove the line and oval
+                    
                     Composite.remove(engine.world, [collisionLine, oval]);
                     oval = null;
                     collisionLine = null;
@@ -276,37 +276,37 @@ console.log(objects)
             }
 
             function shakeScreen() {
-                const shakeMagnitude = 5; // Adjust the magnitude of the shake
+                const shakeMagnitude = 5; 
                 const originalTransform = render.canvas.style.transform;
             
                 const startTime = Date.now();
-                const duration = 500; // Adjust the duration of the shake effect in milliseconds
+                const duration = 500; 
             
-                // Function to calculate the smooth shake effect
+                
                 function calculateShake(offset, magnitude) {
                     const time = Date.now() - startTime;
-                    const angle = (time / duration) * Math.PI * 2; // Use a full sine wave for the duration
+                    const angle = (time / duration) * Math.PI * 2; 
             
                     return Math.sin(angle) * magnitude * (1 - time / duration);
                 }
 
-                // Apply the smooth shake effect to the canvas position
+                
                 function updateShake() {
                     const offsetX = calculateShake(1, shakeMagnitude);
                     const offsetY = calculateShake(1, shakeMagnitude);
             
                     render.canvas.style.transform = `translate(${offsetX}px, ${-offsetY}px)`;
             
-                    // Continue updating the shake effect until the duration is reached
+                    
                     if (Date.now() - startTime < duration) {
                         requestAnimationFrame(updateShake);
                     } else {
-                        // Reset the transform after the duration to stop the shake effect
+                        
                         render.canvas.style.transform = originalTransform;
                     }
                 }
             
-                // Start the smooth shake effect
+                
                 updateShake();
             }
             shakeScreen()            
@@ -317,7 +317,7 @@ console.log(objects)
             
             sphere.restitution = .8;
             sphere.render.strokeStyle = null;
-            sphere.render.lineWidth = 0; // Set the width to 0 to remove the outline
+            sphere.render.lineWidth = 0; 
             if (collisionLine) {
                 Composite.remove(engine.world, [collisionLine, oval]);
                 oval = null
@@ -329,7 +329,7 @@ console.log(objects)
     }
     
     function applyGliding() {
-        const glideForce = 0.00033; // Adjust the glide force as needed
+        const glideForce = 0.00033; 
 
         if (keysPressed.c && !canJump) {
             if (sphere.velocity.y > 0) {
@@ -337,7 +337,7 @@ console.log(objects)
                 let glideTime = 10000;
                 setTimeout(() => {
                     sphere.render.sprite.texture = null;
-                    keysPressed.c = false; // Release the gliding key
+                    keysPressed.c = false; 
 
                 }, glideTime);
             } else {
@@ -357,7 +357,7 @@ console.log(objects)
 
     function phase() {
         if (keysPressed.f) {
-            // Disable collisions for the sphere with all objects in colliders array
+            
             sphere.collisionFilter.mask = 0
             function canCollide(){
                 if(Matter.Query.collides(sphere, [ground,leftborder,rightborder,ceiling]).length > 0){
@@ -366,72 +366,72 @@ console.log(objects)
             }
             canCollide()
 
-            sphere.render.opacity = 0.5;  // Adjust opacity when phasing
+            sphere.render.opacity = 0.5;  
         } else {
             sphere.collisionFilter.mask = defaultCollisionMask
 
-            sphere.render.opacity = 1;  // Reset opacity
+            sphere.render.opacity = 1;  
         }
 
         requestAnimationFrame(phase);
     }
     function shakeScreen() {
-        const shakeMagnitude = 1.5; // Adjust the magnitude of the shake
+        const shakeMagnitude = 1.5; 
         const originalTransform = render.canvas.style.transform;
     
         const startTime = Date.now();
-        const duration = 500; // Adjust the duration of the shake effect in milliseconds
+        const duration = 500; 
     
-        // Function to calculate the smooth shake effect
+        
         function calculateShake(offset, magnitude) {
             const time = Date.now() - startTime;
-            const angle = (time / duration) * Math.PI * 2; // Use a full sine wave for the duration
+            const angle = (time / duration) * Math.PI * 2; 
     
             return Math.sin(angle) * magnitude * (1 - time / duration);
         }
     
-        // Apply the smooth shake effect to the canvas position
+        
         function updateShake() {
             const offsetX = calculateShake(0, shakeMagnitude);
             const offsetY = calculateShake(1, shakeMagnitude);
     
             render.canvas.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
     
-            // Continue updating the shake effect until the duration is reached
+            
             if (Date.now() - startTime < duration) {
                 requestAnimationFrame(updateShake);
             } else {
-                // Reset the transform after the duration to stop the shake effect
+                
                 render.canvas.style.transform = originalTransform;
             }
         }
     
-        // Start the smooth shake effect
+        
         updateShake();
     }
     var trailPoints = [];
 
-    // sandevistan effect function
+    
     function sandevistanEffect() {
         if (keysPressed.m) {
-            // Slow down time for other objects but not the player
+            
             engine.timing.timeScale = 0.2;
         } else {
             engine.timing.timeScale = 1;
         }
 
-        // Record the player's position for the trail
+        
         if (keysPressed.m) {
             var now = Date.now();
             var hue = (now / 10) % 360;
             trailPoints.push({ x: sphere.position.x, y: sphere.position.y, time: now, hue: hue });
         }
 
-        // Remove old trail points
+        
         var cutoff = Date.now() - 500;
         trailPoints = trailPoints.filter(pt => pt.time > cutoff);
 
-        // Draw the trail with a rainbow color effect
+        
         var context = render.context;
         context.save();
         trailPoints.forEach(pt => {
@@ -444,7 +444,7 @@ console.log(objects)
         });
         context.restore();
         updateSphere();
-        // Update the engine after each frame
+        
         requestAnimationFrame(sandevistanEffect);
     }
 
